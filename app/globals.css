@@ -1,3 +1,24 @@
+@import "tailwindcss";
+
+/* Tokens de la pagina publica del taller.
+ *
+ * Sobrios a proposito: la pagina la firma el taller con su logo, y una paleta
+ * fuerte de Kristall competiria con esa marca justo donde no corresponde. El
+ * acento celeste es el mismo que el del boton de generar instalacion en el
+ * panel, para que las dos puntas del producto se reconozcan.
+ */
+@theme {
+  --color-tinta: #101418;
+  --color-tenue: #6b7280;
+  --color-linea: #e5e7eb;
+  --color-fondo: #ffffff;
+  --color-acento: #0ea5e9;
+}
+
+/* Lo de abajo es del esqueleto original y sigue vivo en polariz.ar.
+ * No se toca hasta que esas paginas se rehagan: hoy son las que estan
+ * publicadas. */
+
 * {
   box-sizing: border-box;
 }

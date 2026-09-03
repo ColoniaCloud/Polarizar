@@ -5,3 +5,9 @@ out
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Variables de entorno. Aca vive la api key con la que este sitio le habla al
+# CRM: si se commitea, se filtra.
+.env
+.env.local
+.env*.local
