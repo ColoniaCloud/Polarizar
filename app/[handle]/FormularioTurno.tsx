@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import SelectorHorario from './SelectorHorario'
 import { TIPOS_VEHICULO } from '@/lib/vehiculos'
 import type { PublicService } from '@/lib/crm'
 import { formatPrecio, formatDuracion } from '@/lib/formato'
@@ -30,21 +31,33 @@ export default function FormularioTurno({
   onListo: () => void
 }) {
   const [estado, setEstado] = useState<Estado>({ tipo: 'listo' })
+  // El servicio vive en estado y no solo en el form: cambiarlo cambia los
+  // huecos disponibles, porque la duracion manda.
+  const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? '')
+  const [inicio, setInicio] = useState('')
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
 
-    const dia = String(f.get('dia') ?? '')
-    const hora = String(f.get('hora') ?? '')
-    if (!dia || !hora) {
-      setEstado({ tipo: 'error', msg: 'Elegí día y hora.' })
-      return
+    // Dos caminos: el hueco elegido de la agenda del taller, o —cuando no se
+    // pudo ver la agenda— el dia y hora que propone el cliente.
+    const elegido = String(f.get('inicio') ?? '')
+    let preferredAt: Date
+    if (elegido) {
+      preferredAt = new Date(elegido)
+    } else {
+      const dia = String(f.get('dia') ?? '')
+      const hora = String(f.get('hora') ?? '')
+      if (!dia || !hora) {
+        setEstado({ tipo: 'error', msg: 'Elegí cuándo querés el turno.' })
+        return
+      }
+      // Se arma en la zona del navegador y se manda con offset: el CRM guarda
+      // el instante, no un texto. Sin offset, un turno de las 9 en Argentina se
+      // guardaria como las 9 UTC, o sea las 6 de la mañana.
+      preferredAt = new Date(`${dia}T${hora}`)
     }
-    // Se arma en la zona horaria del navegador y se manda con offset: el CRM
-    // guarda el instante, no un texto. Sin el offset, un turno de las 9 en
-    // Argentina se guardaría como las 9 UTC, o sea las 6 de la mañana.
-    const preferredAt = new Date(`${dia}T${hora}`)
     if (Number.isNaN(preferredAt.getTime())) {
       setEstado({ tipo: 'error', msg: 'Esa fecha no es válida.' })
       return
@@ -77,16 +90,17 @@ export default function FormularioTurno({
     }
   }
 
-  // Mínimo mañana: un turno para dentro de dos horas no le sirve a nadie, y el
-  // taller lo va a ver recién cuando abra el panel.
-  const manana = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10)
-
   return (
     <form onSubmit={enviar} className="flex flex-col gap-4">
       {services.length > 0 && (
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">¿Qué necesitás?</span>
-          <select name="serviceId" className="rounded-lg border border-[color:var(--color-linea)] p-2.5">
+          <select
+            name="serviceId"
+            value={serviceId}
+            onChange={(e) => setServiceId(e.target.value)}
+            className="rounded-lg border border-[color:var(--color-linea)] p-2.5"
+          >
             {services.map((s) => {
               const precio = formatPrecio(s.priceFrom, s.currency)
               return (
@@ -100,28 +114,12 @@ export default function FormularioTurno({
         </label>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">Día</span>
-          <input
-            type="date"
-            name="dia"
-            min={manana}
-            required
-            className="rounded-lg border border-[color:var(--color-linea)] p-2.5"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">Hora</span>
-          <input
-            type="time"
-            name="hora"
-            step={900}
-            required
-            className="rounded-lg border border-[color:var(--color-linea)] p-2.5"
-          />
-        </label>
-      </div>
+      <SelectorHorario
+        handle={handle}
+        serviceId={serviceId || null}
+        valor={inicio}
+        onCambio={setInicio}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">

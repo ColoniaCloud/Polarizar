@@ -156,3 +156,25 @@ export async function cancelarPedido(token: string): Promise<boolean> {
     throw err
   }
 }
+
+export interface Hueco {
+  /** Instante exacto, ISO. */
+  inicio: string
+  /** "09:30" en hora del taller — ya viene calculada, no recalcularla acá. */
+  hora: string
+}
+
+export interface DiaConHuecos {
+  /** "2026-09-10" */
+  fecha: string
+  huecos: Hueco[]
+}
+
+/** Los horarios libres. `serviceId` cambia el resultado: la duración manda. */
+export async function getHuecos(handle: string, serviceId?: string | null) {
+  const qs = serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''
+  const r = await callCrm<{ dias: DiaConHuecos[] }>(
+    `/api/public/workshop/by-handle/${encodeURIComponent(handle)}/slots${qs}`
+  )
+  return r.dias
+}
