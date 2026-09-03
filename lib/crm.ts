@@ -110,3 +110,49 @@ export function crmAssetUrl(path: string | null): string | null {
   if (!path) return null
   return `${base()}${path}`
 }
+
+// ─── Pedidos de turno ────────────────────────────────────────────────────────
+
+export interface BookingInput {
+  serviceId?: string | null
+  clientName: string
+  clientEmail?: string | null
+  clientPhone: string
+  vehicleType?: string | null
+  plate?: string | null
+  notes?: string | null
+  /** ISO con offset. El CRM rechaza el pasado y lo que esté a más de un año. */
+  preferredAt: string
+}
+
+async function postCrm<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${base()}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key() },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) {
+    const cuerpo = await res.json().catch(() => null)
+    throw new CrmError(res.status, cuerpo?.error ?? `El CRM respondió ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
+export function crearPedidoDeTurno(handle: string, datos: BookingInput) {
+  return postCrm<{ ok: true }>(
+    `/api/public/workshop/by-handle/${encodeURIComponent(handle)}/bookings`,
+    datos
+  )
+}
+
+/** `false` si el token no existe o el pedido ya fue respondido. */
+export async function cancelarPedido(token: string): Promise<boolean> {
+  try {
+    await postCrm(`/api/public/booking/cancel/${encodeURIComponent(token)}`)
+    return true
+  } catch (err) {
+    if (err instanceof CrmError && err.status === 404) return false
+    throw err
+  }
+}

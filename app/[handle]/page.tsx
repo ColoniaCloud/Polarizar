@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getWorkshopByHandle, crmAssetUrl } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
+import SeccionTurno from './SeccionTurno'
 
 /**
  * El mapa del taller, o `null` si no hay con qué ubicarlo.
@@ -177,17 +178,13 @@ export default async function TallerPage({ params }: Props) {
         )}
       </section>
 
-      {/* El botón de pedir turno llega en la Fase 4. Hasta entonces la página
-          no promete algo que todavía no puede cumplir: si hay teléfono, manda
-          ahí, que es lo que el taller ya sabe atender. */}
-      {taller.phone && (
-        <a
-          href={`tel:${taller.phone.replace(/\s/g, '')}`}
-          className="mt-8 block rounded-xl bg-[color:var(--color-acento)] px-5 py-3 text-center font-medium text-white"
-        >
-          Llamar para coordinar
-        </a>
-      )}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Pedí tu turno</h2>
+        <p className="mb-4 mt-1 text-sm text-[color:var(--color-tenue)]">
+          Dejale tus datos y {taller.name} te contacta para confirmarlo.
+        </p>
+        <SeccionTurno handle={handle.toLowerCase()} services={taller.services} telefono={taller.phone} />
+      </section>
 
       <footer className="mt-12 border-t border-[color:var(--color-linea)] pt-5 text-center text-xs text-[color:var(--color-tenue)]">
         <p>
