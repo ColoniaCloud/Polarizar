@@ -21,6 +21,11 @@ export class CrmError extends Error {
   }
 }
 
+/** `true` cuando este sitio tiene con qué hablarle al CRM. */
+export function crmConfigurado(): boolean {
+  return Boolean(process.env.CRM_BASE_URL && process.env.CRM_PUBLIC_SITE_API_KEY)
+}
+
 function base(): string {
   const url = process.env.CRM_BASE_URL
   if (!url) throw new Error('Falta CRM_BASE_URL')
@@ -31,7 +36,7 @@ function key(): string {
   const k = process.env.CRM_PUBLIC_SITE_API_KEY
   // Se tira en vez de seguir sin la key: el CRM devolvería 401 y el error se
   // leería como «ese taller no existe», que manda a buscar el bug al lugar
-  // equivocado.
+  // equivocado. Quien llama sin haber chequeado `crmConfigurado()` se entera.
   if (!k) throw new Error('Falta CRM_PUBLIC_SITE_API_KEY')
   return k
 }
@@ -78,6 +83,18 @@ export interface PublicWorkshop {
 
 /** `null` si no existe o si el taller todavía no publicó su página. */
 export async function getWorkshopByHandle(handle: string): Promise<PublicWorkshop | null> {
+  // Sin configurar, no hay páginas de taller — pero el resto del sitio tiene
+  // que seguir funcionando. Esta ruta es dinámica en la raíz, así que atrapa
+  // **toda** URL que no matchee otra página: si acá se tirara, cada 404 del
+  // sitio se convertiría en un 500. Se avisa por log, que es un problema de
+  // configuración y no del visitante.
+  if (!crmConfigurado()) {
+    console.error(
+      '[polarizar] Falta CRM_BASE_URL o CRM_PUBLIC_SITE_API_KEY: las páginas de taller no se pueden mostrar.'
+    )
+    return null
+  }
+
   try {
     return await callCrm<PublicWorkshop>(
       `/api/public/workshop/by-handle/${encodeURIComponent(handle)}`
