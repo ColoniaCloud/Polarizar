@@ -4,6 +4,25 @@ import { getWorkshopByHandle, crmAssetUrl } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
 
 /**
+ * El mapa del taller, o `null` si no hay con qué ubicarlo.
+ *
+ * Prefiere las coordenadas sobre el texto: una dirección escrita a mano puede
+ * caer en la otra punta del país, y en ese caso es mejor no mostrar mapa que
+ * mostrar uno que manda al cliente a otro lado.
+ *
+ * Devuelve `null` sin la key en vez de armar una URL rota — un iframe de Google
+ * sin key muestra un cartel de error gris que se lee como que el taller está mal
+ * cargado, cuando el problema es nuestro.
+ */
+function urlDelMapa(t: { name: string; address: string | null; lat: number | null; lng: number | null }) {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  if (!key) return null
+  const q = t.lat !== null && t.lng !== null ? `${t.lat},${t.lng}` : t.address
+  if (!q) return null
+  return `https://www.google.com/maps/embed/v1/place?key=${key}&q=${encodeURIComponent(q)}&zoom=16`
+}
+
+/**
  * La página pública de un taller: polariz.ar/tallercarlos
  *
  * Es una ruta dinámica en la raíz, así que compite con todas las rutas del
@@ -45,6 +64,7 @@ export default async function TallerPage({ params }: Props) {
 
   const logo = crmAssetUrl(taller.logoPath)
   const dias = formatDias(taller.hours.days)
+  const mapa = urlDelMapa(taller)
   const horario =
     taller.hours.opening && taller.hours.closing
       ? `${taller.hours.opening} a ${taller.hours.closing}`
@@ -90,6 +110,22 @@ export default async function TallerPage({ params }: Props) {
               </a>
             </p>
           )}
+        </section>
+      )}
+
+      {mapa && (
+        <section className="mt-4 overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
+          {/* Embed y no la API de JavaScript: para mostrar un punto en un mapa,
+              cargar la librería entera son cientos de KB que el cliente paga en
+              su teléfono para ver lo mismo. */}
+          <iframe
+            src={mapa}
+            title={`Dónde queda ${taller.name}`}
+            className="block h-64 w-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
         </section>
       )}
 
