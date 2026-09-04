@@ -81,6 +81,11 @@ export interface PublicWorkshop {
    * sobre blanco, y no hay forma confiable de deducirlo mirando los píxeles.
    */
   logoBackground: 'CLARO' | 'OSCURO'
+  /**
+   * Cómo trabaja el taller. Las tres tarjetas se muestran siempre; las que
+   * están en `false` van apagadas — decir «esto no lo hago» también informa.
+   */
+  modalidades: { taller: boolean; domicilio: boolean; concesionarias: boolean }
   address: string | null
   lat: number | null
   lng: number | null

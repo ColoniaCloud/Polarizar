@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import HeaderTaller from './HeaderTaller'
 import FormularioTurno from './FormularioTurno'
+import Modalidades from './Modalidades'
 import type { PublicWorkshop } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
 
@@ -111,6 +112,15 @@ export default function LandingTaller({
                 </a>
               )}
             </div>
+
+            {/* Debajo de la descripción del taller: primero quién es, después
+                de qué maneras se le puede llegar. */}
+            <Modalidades
+              taller={taller}
+              wa={wa}
+              email={emailContacto}
+              onAgendar={() => formRef.current?.scrollIntoView({ block: 'start' })}
+            />
 
             <p className="mt-2 text-xs text-[color:var(--color-tenue)]">
               Trabaja con láminas <strong className="font-semibold">Kristall Film</strong>, con
