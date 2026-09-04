@@ -77,6 +77,8 @@ export interface PublicWorkshop {
   lat: number | null
   lng: number | null
   phone: string | null
+  /** El mail que el taller eligió publicar, no el de su cuenta. */
+  email: string | null
   hours: { opening: string | null; closing: string | null; days: string | null }
   services: PublicService[]
 }
@@ -115,6 +117,10 @@ export function crmAssetUrl(path: string | null): string | null {
 
 export interface BookingInput {
   serviceId?: string | null
+  alreadyTinted?: boolean | null
+  /** Base64 sin el prefijo `data:`. */
+  photo?: string | null
+  photoMimeType?: string | null
   clientName: string
   clientEmail?: string | null
   clientPhone: string

@@ -3,19 +3,28 @@
  * `src/lib/vehicle-types.ts` del CRM.
  *
  * Los tres tienen que moverse juntos: el CRM valida el slug, kristall-web lo
- * muestra en el alta de instalación y acá lo elige el cliente final. Los iconos
- * viven en kristall-web, así que esta lista es solo texto — la página del taller
- * no los necesita.
+ * muestra en el alta de instalación y acá lo elige el cliente final. Los SVG son
+ * copia de los de kristall-web — **si agregás uno, va en los tres lados y con
+ * el archivo en los dos `public/iconos/vehiculos`**.
+ *
+ * El orden es el de la calle, no alfabético: primero lo que un polarizador ve
+ * todos los días y al final lo raro.
  */
-export const TIPOS_VEHICULO: { slug: string; label: string }[] = [
-  { slug: 'SEDAN', label: 'Sedán' },
-  { slug: 'HATCHBACK', label: 'Hatchback' },
-  { slug: 'SUV', label: 'SUV' },
-  { slug: 'FURGON', label: 'Furgón' },
-  { slug: 'VAN_MINIBUS', label: 'Van / Minibús' },
-  { slug: 'CAMION_CHICO', label: 'Camión chico' },
-  { slug: 'CAMION_GRANDE', label: 'Camión grande' },
-  { slug: 'COLECTIVO', label: 'Colectivo' },
-  { slug: 'YATE_CHICO', label: 'Yate chico' },
-  { slug: 'YATE_GRANDE', label: 'Yate grande' },
+export interface TipoVehiculo {
+  slug: string
+  label: string
+  icon: string
+}
+
+export const TIPOS_VEHICULO: TipoVehiculo[] = [
+  { slug: 'SEDAN', label: 'Sedán', icon: '/iconos/vehiculos/Sedan.svg' },
+  { slug: 'HATCHBACK', label: 'Hatchback', icon: '/iconos/vehiculos/Hatchback.svg' },
+  { slug: 'SUV', label: 'SUV', icon: '/iconos/vehiculos/SUV.svg' },
+  { slug: 'FURGON', label: 'Furgón', icon: '/iconos/vehiculos/Furgon.svg' },
+  { slug: 'VAN_MINIBUS', label: 'Van / Minibús', icon: '/iconos/vehiculos/Van-Minibus.svg' },
+  { slug: 'CAMION_CHICO', label: 'Camión chico', icon: '/iconos/vehiculos/Camion Chico.svg' },
+  { slug: 'CAMION_GRANDE', label: 'Camión grande', icon: '/iconos/vehiculos/Camion Grande.svg' },
+  { slug: 'COLECTIVO', label: 'Colectivo', icon: '/iconos/vehiculos/Colectivo.svg' },
+  { slug: 'YATE_CHICO', label: 'Yate chico', icon: '/iconos/vehiculos/Yate Chico.svg' },
+  { slug: 'YATE_GRANDE', label: 'Yate grande', icon: '/iconos/vehiculos/Yate Grande.svg' },
 ]

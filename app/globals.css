@@ -1,48 +1,85 @@
 @import "tailwindcss";
 
-/* Tokens de la pagina publica del taller.
+/* Tokens de la pagina publica del taller — tema oscuro.
  *
- * Sobrios a proposito: la pagina la firma el taller con su logo, y una paleta
- * fuerte de Kristall competiria con esa marca justo donde no corresponde. El
- * acento celeste es el mismo que el del boton de generar instalacion en el
- * panel, para que las dos puntas del producto se reconozcan.
+ * Oscuro a proposito y no como moda: la pagina la firma el taller con su logo,
+ * y sobre fondo oscuro un logo respira en vez de competir con el blanco. Ademas
+ * es la paleta del rubro — el polarizado se vende mostrando vidrio oscuro.
+ *
+ * La paleta es sobria: un solo acento, el mismo celeste del boton de generar
+ * instalacion en el panel, para que las dos puntas del producto se reconozcan.
+ *
+ * `--color-tinta` sigue llamandose asi aunque ahora sea claro: es "el color del
+ * texto principal", no "negro". Renombrarlo obligaria a tocar cada pantalla.
  */
 @theme {
-  --color-tinta: #101418;
-  --color-tenue: #6b7280;
-  --color-linea: #e5e7eb;
-  --color-fondo: #ffffff;
+  --color-tinta: #f4f5f7;
+  --color-tenue: #98a1ae;
+  --color-linea: #2a3038;
+  --color-fondo: #0d1117;
+  --color-superficie: #161b22;
   --color-acento: #0ea5e9;
 }
 
-/* Lo de abajo es del esqueleto original y sigue vivo en polariz.ar.
- * No se toca hasta que esas paginas se rehagan: hoy son las que estan
- * publicadas. */
+/* ── El sitio viejo ───────────────────────────────────────────────────────
+ *
+ * Todo esto viene del esqueleto original y sigue vivo en las paginas publicadas
+ * de polariz.ar. Estaba escrito con selectores de elemento sueltos (`h1`, `a`,
+ * `main`), asi que se filtraba a la pagina del taller y la rompia: el `h1` usa
+ * `-webkit-text-fill-color: transparent` con un degradado oscuro, o sea que
+ * sobre fondo oscuro el titulo desaparecia.
+ *
+ * Ahora esta acotado a `.sitio-legacy`, que pone el layout de `(sitio)`. No se
+ * reescribe todavia porque esas paginas son las que hoy estan publicadas — pero
+ * ya no le pisa los estilos a nadie mas.
+ */
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+/* El scroll suave va en CSS y no en `scrollIntoView({ behavior: 'smooth' })`.
+ *
+ * No es equivalente: hay navegadores donde la opcion de JS se ignora en
+ * silencio y el scroll simplemente no pasa —lo verificamos—, mientras que la
+ * propiedad de CSS, cuando no esta soportada, degrada a un salto instantaneo.
+ * Un salto es feo; no moverse es que el boton parezca roto.
+ *
+ * Detras de `prefers-reduced-motion` porque para quien marco esa preferencia el
+ * movimiento puede ser mareo, no adorno.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+html,
+body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* El fondo claro es del sitio viejo, no del documento: la pagina del taller
+ * pinta el suyo oscuro y no tiene que pelearle. */
+.sitio-legacy {
   background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   color: #1a1a2e;
   min-height: 100vh;
 }
 
-main {
+.sitio-legacy main {
   padding: 3rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-h1 {
+.sitio-legacy h1 {
   color: #1a1a2e;
   font-size: 2.5rem;
   margin-bottom: 1rem;
@@ -52,47 +89,46 @@ h1 {
   background-clip: text;
 }
 
-h2 {
+.sitio-legacy h2 {
   color: #16213e;
   font-size: 2rem;
   margin-bottom: 1rem;
 }
 
-h3 {
+.sitio-legacy h3 {
   color: #0f3460;
   font-size: 1.5rem;
 }
 
-p {
+.sitio-legacy p {
   line-height: 1.6;
   color: #444;
 }
 
-a {
+.sitio-legacy a {
   color: #00d4ff;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-a:hover {
+.sitio-legacy a:hover {
   color: #00e5ff;
   text-decoration: underline;
 }
 
-/* Scrollbar personalizado */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #0d1117;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00d4ff;
+  background: #2a3038;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00e5ff;
+  background: #3a424c;
 }
