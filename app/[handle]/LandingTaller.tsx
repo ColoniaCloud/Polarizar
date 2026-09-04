@@ -63,6 +63,7 @@ export default function LandingTaller({
         logoUrl={logoUrl}
         telefono={taller.phone}
         email={emailContacto}
+        fondo={taller.logoBackground}
       />
 
       {/* ── Sección 1: quién es · qué ofrece ────────────────────────────── */}

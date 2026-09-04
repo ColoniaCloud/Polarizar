@@ -19,13 +19,17 @@ export default function HeaderTaller({
   logoUrl,
   telefono,
   email,
+  fondo,
 }: {
   nombre: string
   logoUrl: string | null
   telefono: string | null
   email: string | null
+  /** Lo elige el taller según cómo se vea su logo. Ver `logoBackground`. */
+  fondo: 'CLARO' | 'OSCURO'
 }) {
   const [abierto, setAbierto] = useState(false)
+  const oscura = fondo === 'OSCURO'
 
   // El teléfono va a wa.me sin espacios ni guiones. Si no arranca con código de
   // país se asume Argentina, que es de donde viene la mayoría de los talleres.
@@ -70,7 +74,16 @@ export default function HeaderTaller({
   )
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]/90 backdrop-blur">
+    // La cabecera es lo único que puede ir oscuro: el resto de la página es
+    // clara siempre. Sin el `backdrop-blur` cuando es oscura — el desenfoque
+    // sobre contenido claro deja un halo sucio en el borde.
+    <header
+      className={
+        oscura
+          ? 'sticky top-0 z-30 border-b border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)] text-[color:var(--color-cabecera-oscura-texto)]'
+          : 'sticky top-0 z-30 border-b border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]/90 backdrop-blur'
+      }
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
         <a href="#" className="flex min-w-0 items-center gap-3">
           {logoUrl ? (
@@ -88,14 +101,24 @@ export default function HeaderTaller({
           onClick={() => setAbierto((a) => !a)}
           aria-expanded={abierto}
           aria-label={abierto ? 'Cerrar menú' : 'Abrir menú'}
-          className="rounded-lg border border-[color:var(--color-linea)] p-2 md:hidden"
+          className={`rounded-lg border p-2 md:hidden ${
+            oscura
+              ? 'border-[color:var(--color-cabecera-oscura-linea)]'
+              : 'border-[color:var(--color-linea)]'
+          }`}
         >
           {abierto ? <X /> : <Menu />}
         </button>
       </div>
 
       {abierto && (
-        <nav className="flex flex-col gap-4 border-t border-[color:var(--color-linea)] px-5 py-4 text-sm md:hidden">
+        <nav
+          className={`flex flex-col gap-4 border-t px-5 py-4 text-sm md:hidden ${
+            oscura
+              ? 'border-[color:var(--color-cabecera-oscura-linea)]'
+              : 'border-[color:var(--color-linea)]'
+          }`}
+        >
           {enlaces}
         </nav>
       )}

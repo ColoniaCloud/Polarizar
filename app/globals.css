@@ -1,24 +1,31 @@
 @import "tailwindcss";
 
-/* Tokens de la pagina publica del taller — tema oscuro.
+/* Tokens de la pagina publica del taller — tema claro.
  *
- * Oscuro a proposito y no como moda: la pagina la firma el taller con su logo,
- * y sobre fondo oscuro un logo respira en vez de competir con el blanco. Ademas
- * es la paleta del rubro — el polarizado se vende mostrando vidrio oscuro.
+ * La paleta es sobria y de un solo acento: el mismo celeste del boton de
+ * generar instalacion en el panel, para que las dos puntas del producto se
+ * reconozcan.
  *
- * La paleta es sobria: un solo acento, el mismo celeste del boton de generar
- * instalacion en el panel, para que las dos puntas del producto se reconozcan.
+ * Los grises tienen una pizca de azul (`#1e242c` no es negro puro, `#6b7480` no
+ * es gris neutro) para que acompañen al acento en vez de pelearse con el.
  *
- * `--color-tinta` sigue llamandose asi aunque ahora sea claro: es "el color del
- * texto principal", no "negro". Renombrarlo obligaria a tocar cada pantalla.
+ * **La cabecera es la excepcion.** Su fondo lo decide cada taller segun como se
+ * vea su logo, con `logoBackground`: hay logos de trazo oscuro que desaparecen
+ * sobre negro y logos blancos que desaparecen sobre blanco. El resto de la
+ * pagina es clara siempre.
  */
 @theme {
-  --color-tinta: #f4f5f7;
-  --color-tenue: #98a1ae;
-  --color-linea: #2a3038;
-  --color-fondo: #0d1117;
-  --color-superficie: #161b22;
-  --color-acento: #0ea5e9;
+  --color-tinta: #1e242c;
+  --color-tenue: #6b7480;
+  --color-linea: #e3e6ea;
+  --color-fondo: #ffffff;
+  --color-superficie: #f6f8fa;
+  --color-acento: #0284c7;
+
+  /* La cabecera oscura, para los logos que la piden. */
+  --color-cabecera-oscura: #12171d;
+  --color-cabecera-oscura-linea: #2a3038;
+  --color-cabecera-oscura-texto: #f4f5f7;
 }
 
 /* ── El sitio viejo ───────────────────────────────────────────────────────
@@ -121,14 +128,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d1117;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a3038;
+  background: #c8cdd4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a424c;
+  background: #aeb5bd;
 }

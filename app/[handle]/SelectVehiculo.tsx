@@ -63,7 +63,7 @@ export default function SelectVehiculo({
           {elegido ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={elegido.icon} alt="" className="h-7 w-10 shrink-0 object-contain invert" />
+              <img src={elegido.icon} alt="" className="h-7 w-10 shrink-0 object-contain" />
               <span className="truncate">{elegido.label}</span>
             </>
           ) : (
@@ -91,13 +91,13 @@ export default function SelectVehiculo({
                     setAbierto(false)
                   }}
                   className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-left ${
-                    activo ? 'bg-[color:var(--color-acento)]/15' : 'hover:bg-white/5'
+                    activo ? 'bg-[color:var(--color-acento)]/10' : 'hover:bg-black/5'
                   }`}
                 >
-                  {/* Los SVG son de trazo oscuro (vienen del panel, que es claro);
-                      invertirlos es lo que los hace visibles sobre fondo oscuro. */}
+                  {/* Los SVG son de trazo oscuro y la página es clara, así que
+                      van tal cual: invertirlos los haría desaparecer. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={v.icon} alt="" className="h-8 w-12 shrink-0 object-contain invert" />
+                  <img src={v.icon} alt="" className="h-8 w-12 shrink-0 object-contain" />
                   <span className="flex-1">{v.label}</span>
                   {activo && <Check />}
                 </button>

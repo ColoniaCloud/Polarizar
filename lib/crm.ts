@@ -73,6 +73,14 @@ export interface PublicWorkshop {
   name: string
   /** Ruta **relativa al CRM**. Hay que anteponerle su base, no la de este sitio. */
   logoPath: string | null
+  /**
+   * Sobre qué fondo se ve bien el logo, elegido por el taller.
+   *
+   * Define **solo el color de la cabecera**, no el de la página: hay logos de
+   * trazo oscuro que desaparecen sobre negro y logos blancos que desaparecen
+   * sobre blanco, y no hay forma confiable de deducirlo mirando los píxeles.
+   */
+  logoBackground: 'CLARO' | 'OSCURO'
   address: string | null
   lat: number | null
   lng: number | null
