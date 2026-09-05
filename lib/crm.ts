@@ -59,10 +59,23 @@ export async function callCrm<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Sobre qué se aplica un servicio. PPF no está: va sobre autos. */
+export type RubroServicio = 'AUTOMOTIVE' | 'ARCHITECTURAL'
+
 export interface PublicService {
   id: string
   name: string
   description: string | null
+  /**
+   * Lo que decide **qué campos muestra el formulario** cuando el visitante
+   * elige este servicio: un auto tiene tipo y patente, un inmueble tiene
+   * dirección y metros.
+   *
+   * Va por servicio y no por taller para que uno que hace las dos cosas tenga
+   * las dos formas en la misma página, sin obligar al visitante a declarar qué
+   * es antes de tener contexto.
+   */
+  category: RubroServicio
   /** `null` = el taller eligió no publicar precio. */
   priceFrom: number | null
   currency: 'ARS' | 'USD'
@@ -86,6 +99,14 @@ export interface PublicWorkshop {
    * están en `false` van apagadas — decir «esto no lo hago» también informa.
    */
   modalidades: { taller: boolean; domicilio: boolean; concesionarias: boolean }
+  /**
+   * Sobre qué trabaja el taller. Define la **forma** de la página: con uno solo
+   * los servicios van en una lista plana; con los dos van agrupados en bloques
+   * y aparece la tarjeta de visita.
+   *
+   * Al menos uno viene en `true`: el CRM no deja guardar los dos apagados.
+   */
+  rubros: { automotriz: boolean; arquitectura: boolean }
   address: string | null
   lat: number | null
   lng: number | null
@@ -137,8 +158,17 @@ export interface BookingInput {
   clientName: string
   clientEmail?: string | null
   clientPhone: string
+  /** Automotriz. Obligatorio cuando el servicio elegido es de ese rubro. */
   vehicleType?: string | null
   plate?: string | null
+  /** Arquitectura. `propertyType` y `siteAddress` son obligatorios ahí. */
+  propertyType?: string | null
+  glassCount?: number | null
+  approxM2?: number | null
+  goal?: string | null
+  siteAddress?: string | null
+  /** `MANANA` o `TARDE`. Solo en las visitas: reemplaza a la hora exacta. */
+  timeWindow?: string | null
   notes?: string | null
   /** ISO con offset. El CRM rechaza el pasado y lo que esté a más de un año. */
   preferredAt: string

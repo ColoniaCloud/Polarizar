@@ -65,6 +65,19 @@ html,
 body {
   padding: 0;
   margin: 0;
+  /* El sitio es claro siempre, y hay que decirlo.
+   *
+   * Sin esto, a un visitante con el sistema operativo en modo oscuro el
+   * navegador le pinta de oscuro todo lo que dibuja el: el calendario del
+   * `<input type="date">`, el panel del `<select>`, los radios, las barras de
+   * scroll. Sobre una pagina blanca eso queda ilegible — es el mismo error que
+   * el icono blanco sobre blanco, al reves.
+   *
+   * Y el fondo va en el documento, no solo en el contenedor de la pagina: sin
+   * el, la zona de rebote del scroll en un telefono muestra el fondo del
+   * navegador, que en modo oscuro es negro. */
+  color-scheme: light;
+  background: var(--color-fondo);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -72,8 +85,8 @@ body {
   min-height: 100vh;
 }
 
-/* El fondo claro es del sitio viejo, no del documento: la pagina del taller
- * pinta el suyo oscuro y no tiene que pelearle. */
+/* El degradado es del sitio viejo, no del documento: la pagina del taller pinta
+ * el suyo y no tiene que pelearle. */
 .sitio-legacy {
   background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   color: #1a1a2e;

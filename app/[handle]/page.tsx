@@ -48,11 +48,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
   const taller = await getWorkshopByHandle(handle.toLowerCase()).catch(() => null)
   if (!taller) return { title: 'Taller no encontrado' }
+
+  // El titulo dice lo que se puede hacer en la pagina, y eso depende del rubro:
+  // en arquitectura no se reserva un turno, se pide una visita para medir.
+  const soloArquitectura = taller.rubros.arquitectura && !taller.rubros.automotriz
+  const accion = soloArquitectura ? 'Pedí tu presupuesto' : 'Pedí tu turno'
+  const queHace = taller.rubros.automotriz
+    ? taller.rubros.arquitectura
+      ? 'Polarizado de vehículos y láminas para vidrios de casas y oficinas.'
+      : 'Polarizado de vehículos.'
+    : 'Láminas para vidrios de casas, oficinas y edificios.'
+
   return {
-    title: `${taller.name} — Pedí tu turno`,
-    description: taller.address
-      ? `${taller.name}. ${taller.address}. Instalador autorizado Kristall.`
-      : `${taller.name}. Instalador autorizado Kristall.`,
+    title: `${taller.name} — ${accion}`,
+    description: [
+      taller.name + '.',
+      queHace,
+      taller.address,
+      'Instalador autorizado Kristall.',
+    ]
+      .filter(Boolean)
+      .join(' '),
   }
 }
 

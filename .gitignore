@@ -11,3 +11,6 @@ yarn-error.log*
 .env
 .env.local
 .env*.local
+
+# Cache incremental de TypeScript: se regenera en cada build.
+tsconfig.tsbuildinfo
