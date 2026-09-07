@@ -31,12 +31,18 @@ export default function LandingTaller({
   logoUrl,
   mapaUrl,
   emailContacto,
+  apiBase = '/api/turno',
+  demo = false,
 }: {
   handle: string
   taller: PublicWorkshop
   logoUrl: string | null
   mapaUrl: string | null
   emailContacto: string | null
+  /** `/api/turno` en la página real, `/api/turno/demo` en la de demostración. */
+  apiBase?: string
+  /** Dibuja la banda de arriba y cambia lo que promete el formulario. */
+  demo?: boolean
 }) {
   const [serviceId, setServiceId] = useState(taller.services[0]?.id ?? '')
   const [enviado, setEnviado] = useState(false)
@@ -95,6 +101,17 @@ export default function LandingTaller({
 
   return (
     <div className="min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]">
+      {/* Va arriba de todo y no se puede cerrar.
+          Esta página se va a terminar compartiendo por WhatsApp, y alguien va a
+          pedirle turno a un taller que no existe. Que se lea antes que el logo
+          es el punto: después ya es tarde. */}
+      {demo && (
+        <div className="bg-amber-100 px-5 py-2.5 text-center text-sm text-amber-900">
+          <strong className="font-semibold">Esto es una demostración.</strong> El taller no existe y
+          los turnos que pidas acá no le llegan a nadie.
+        </div>
+      )}
+
       <HeaderTaller
         nombre={taller.name}
         logoUrl={logoUrl}
@@ -218,6 +235,7 @@ export default function LandingTaller({
                   serviceId={serviceId}
                   onServiceId={setServiceId}
                   onListo={() => setEnviado(true)}
+                  apiBase={apiBase}
                   // Sin servicios cargados no hay categoria de la que derivar la
                   // forma del formulario. Se usa el rubro del taller, y con los
                   // dos marcados gana automotriz, que es lo que hace la mayoria.
