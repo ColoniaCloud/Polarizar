@@ -41,6 +41,18 @@ function key(): string {
   return k
 }
 
+/**
+ * El prefijo de los endpoints públicos del CRM.
+ *
+ * El portal de demostración corre el mismo código contra otra base, y del lado
+ * del CRM eso son cinco rutas espejo bajo `/api/public/demo/`. Acá se elige el
+ * prefijo y nada más: los caminos, los parámetros y las respuestas son
+ * idénticos, porque del otro lado es literalmente el mismo handler.
+ */
+export function prefijoPublico(demo: boolean): string {
+  return demo ? '/api/public/demo' : '/api/public'
+}
+
 export async function callCrm<T>(path: string): Promise<T> {
   const res = await fetch(`${base()}${path}`, {
     headers: { 'x-api-key': key() },
@@ -118,7 +130,10 @@ export interface PublicWorkshop {
 }
 
 /** `null` si no existe o si el taller todavía no publicó su página. */
-export async function getWorkshopByHandle(handle: string): Promise<PublicWorkshop | null> {
+export async function getWorkshopByHandle(
+  handle: string,
+  demo = false
+): Promise<PublicWorkshop | null> {
   // Sin configurar, no hay páginas de taller — pero el resto del sitio tiene
   // que seguir funcionando. Esta ruta es dinámica en la raíz, así que atrapa
   // **toda** URL que no matchee otra página: si acá se tirara, cada 404 del
@@ -133,7 +148,7 @@ export async function getWorkshopByHandle(handle: string): Promise<PublicWorksho
 
   try {
     return await callCrm<PublicWorkshop>(
-      `/api/public/workshop/by-handle/${encodeURIComponent(handle)}`
+      `${prefijoPublico(demo)}/workshop/by-handle/${encodeURIComponent(handle)}`
     )
   } catch (err) {
     if (err instanceof CrmError && err.status === 404) return null
@@ -141,10 +156,19 @@ export async function getWorkshopByHandle(handle: string): Promise<PublicWorksho
   }
 }
 
-/** Las imágenes que sirve el CRM no están en este sitio. */
-export function crmAssetUrl(path: string | null): string | null {
+/**
+ * Las imágenes que sirve el CRM no están en este sitio.
+ *
+ * En modo demo hay que reapuntar la ruta al espejo: el CRM devuelve el logo
+ * como `/api/public/workshop/logo/<slug>` sin saber por cuál de las dos bases
+ * se le preguntó, y ese slug solo existe en la de demo. Sin esta traducción el
+ * logo del taller de demostración da 404 y la cabecera queda con el nombre en
+ * texto — que es justo lo que la página tenía que mostrar bien.
+ */
+export function crmAssetUrl(path: string | null, demo = false): string | null {
   if (!path) return null
-  return `${base()}${path}`
+  const ruta = demo ? path.replace('/api/public/', '/api/public/demo/') : path
+  return `${base()}${ruta}`
 }
 
 // ─── Pedidos de turno ────────────────────────────────────────────────────────
@@ -188,17 +212,17 @@ async function postCrm<T>(path: string, body?: unknown): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export function crearPedidoDeTurno(handle: string, datos: BookingInput) {
+export function crearPedidoDeTurno(handle: string, datos: BookingInput, demo = false) {
   return postCrm<{ ok: true }>(
-    `/api/public/workshop/by-handle/${encodeURIComponent(handle)}/bookings`,
+    `${prefijoPublico(demo)}/workshop/by-handle/${encodeURIComponent(handle)}/bookings`,
     datos
   )
 }
 
 /** `false` si el token no existe o el pedido ya fue respondido. */
-export async function cancelarPedido(token: string): Promise<boolean> {
+export async function cancelarPedido(token: string, demo = false): Promise<boolean> {
   try {
-    await postCrm(`/api/public/booking/cancel/${encodeURIComponent(token)}`)
+    await postCrm(`${prefijoPublico(demo)}/booking/cancel/${encodeURIComponent(token)}`)
     return true
   } catch (err) {
     if (err instanceof CrmError && err.status === 404) return false
@@ -220,10 +244,10 @@ export interface DiaConHuecos {
 }
 
 /** Los horarios libres. `serviceId` cambia el resultado: la duración manda. */
-export async function getHuecos(handle: string, serviceId?: string | null) {
+export async function getHuecos(handle: string, serviceId?: string | null, demo = false) {
   const qs = serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''
   const r = await callCrm<{ dias: DiaConHuecos[] }>(
-    `/api/public/workshop/by-handle/${encodeURIComponent(handle)}/slots${qs}`
+    `${prefijoPublico(demo)}/workshop/by-handle/${encodeURIComponent(handle)}/slots${qs}`
   )
   return r.dias
 }

@@ -20,9 +20,12 @@ export default function SelectorHorario({
   serviceId,
   valor,
   onCambio,
+  apiBase,
 }: {
   handle: string
   serviceId: string | null
+  /** `/api/turno` o `/api/turno/demo`. Ver `app/demo/[handle]/page.tsx`. */
+  apiBase: string
   /** ISO del hueco elegido, o '' si todavía no eligió. */
   valor: string
   onCambio: (iso: string) => void
@@ -35,7 +38,7 @@ export default function SelectorHorario({
     let vigente = true
     setCargando(true)
     const qs = serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''
-    fetch(`/api/turno/${encodeURIComponent(handle)}/huecos${qs}`)
+    fetch(`${apiBase}/${encodeURIComponent(handle)}/huecos${qs}`)
       .then((r) => r.json())
       .then((d) => {
         if (!vigente) return
@@ -60,7 +63,7 @@ export default function SelectorHorario({
     // `onCambio` se deja afuera a propósito: viene del padre y cambia en cada
     // render, así que incluirlo dispararía la consulta en bucle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handle, serviceId])
+  }, [handle, serviceId, apiBase])
 
   if (cargando) {
     return <p className="text-sm text-[color:var(--color-tenue)]">Buscando horarios…</p>

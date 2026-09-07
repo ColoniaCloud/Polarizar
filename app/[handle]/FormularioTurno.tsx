@@ -82,8 +82,11 @@ export default function FormularioTurno({
   onServiceId,
   onListo,
   rubroPorDefecto,
+  apiBase,
 }: {
   handle: string
+  /** `/api/turno` o `/api/turno/demo`. Ver `app/demo/[handle]/page.tsx`. */
+  apiBase: string
   services: PublicService[]
   /** Lo controla el padre: la lista de servicios de arriba también lo cambia. */
   serviceId: string
@@ -186,7 +189,7 @@ export default function FormularioTurno({
 
     setEstado({ tipo: 'enviando' })
     try {
-      const res = await fetch(`/api/turno/${encodeURIComponent(handle)}`, {
+      const res = await fetch(`${apiBase}/${encodeURIComponent(handle)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -261,6 +264,7 @@ export default function FormularioTurno({
           serviceId={serviceId || null}
           valor={inicio}
           onCambio={setInicio}
+          apiBase={apiBase}
         />
       )}
 
