@@ -100,7 +100,7 @@ export default function LandingTaller({
     : null
 
   return (
-    <div className="tipografia-taller min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]">
+    <div className="min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]">
       {/* Va arriba de todo y no se puede cerrar.
           Esta página se va a terminar compartiendo por WhatsApp, y alguien va a
           pedirle turno a un taller que no existe. Que se lea antes que el logo

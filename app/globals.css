@@ -85,18 +85,6 @@ body {
   min-height: 100vh;
 }
 
-/* La pagina publica del taller va en Montserrat. La variable la define el
- * layout raiz con next/font, que la auto-hospeda: no hay pedido a Google desde
- * el navegador del visitante.
- *
- * Es una clase y no una regla sobre el `body` a proposito — el sitio de
- * comunidad conserva su tipografia de sistema. La cadena de respaldo esta
- * completa porque `display: swap` muestra el texto con la fuente de respaldo
- * mientras Montserrat baja, y eso se ve. */
-.tipografia-taller {
-  font-family: var(--font-montserrat), 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
 /* El degradado es del sitio viejo, no del documento: la pagina del taller pinta
  * el suyo y no tiene que pelearle. */
 .sitio-legacy {
