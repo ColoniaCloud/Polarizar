@@ -27,8 +27,11 @@ import { formatPrecio, formatDuracion } from '@/lib/formato'
  *
  * ─── Qué es obligatorio y por qué ──────────────────────────────────────────
  *
- * Siempre: nombre, teléfono, email y cuándo. El email porque es lo único que
- * permite avisarle y que pueda cancelar sin llamar.
+ * Siempre: nombre, WhatsApp, email y cuándo. El email porque es lo único que
+ * permite avisarle y que pueda cancelar sin llamar. Se pide el WhatsApp
+ * específicamente (no "teléfono" a secas) porque el taller le contesta desde
+ * ahí ante cualquier imprevisto — un fijo o un número sin WhatsApp le rompe
+ * ese camino.
  *
  * En automotriz, además el tipo de vehículo: cambia el precio y el tiempo, y
  * preguntarlo después por teléfono es la llamada que este formulario tendría
@@ -393,7 +396,7 @@ export default function FormularioTurno({
           <input name="clientName" required minLength={2} className={campo} />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">Teléfono</span>
+          <span className="text-sm font-medium">WhatsApp</span>
           <input
             name="clientPhone"
             type="tel"
@@ -401,6 +404,9 @@ export default function FormularioTurno({
             placeholder="11 2345 6789"
             className={campo}
           />
+          <span className="text-xs text-[color:var(--color-tenue)]">
+            El taller te va a escribir ahí ante cualquier imprevisto.
+          </span>
         </label>
       </div>
 
