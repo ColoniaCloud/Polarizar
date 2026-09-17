@@ -1,3 +1,20 @@
+/* Los `@import` de fuentes tienen que ir ANTES de `@import "tailwindcss"`:
+ * Tailwind v4 expande ese import en reglas de verdad al compilar, y un
+ * `@import` que quede después de una regla real es inválido en CSS. Mismo
+ * orden que ya usa kristall-web en su `globals.css`. */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* Clash Display, solo para el nombre del taller en la sección de cierre de
+ * `LandingTaller.tsx`. El resto del sitio usa Montserrat — mismo archivo que
+ * ya tiene kristall-web en `public/fonts/`, copiado acá para no depender de
+ * otro dominio para una sola palabra grande por página. */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Variable.woff2') format('woff2-variations');
+  font-weight: 200 700;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 /* Tokens de la pagina publica del taller — tema claro.
@@ -26,6 +43,11 @@
   --color-cabecera-oscura: #12171d;
   --color-cabecera-oscura-linea: #2a3038;
   --color-cabecera-oscura-texto: #f4f5f7;
+
+  /* Montserrat entra por `.tipografia-taller` (ver más abajo), no por acá.
+   * `--font-marca` sí es un token: la excepción puntual del nombre del
+   * taller en la sección de cierre, aplicada con la clase `font-marca`. */
+  --font-marca: 'Clash Display', sans-serif;
 }
 
 /* ── El sitio viejo ───────────────────────────────────────────────────────
@@ -78,11 +100,23 @@ body {
    * navegador, que en modo oscuro es negro. */
   color-scheme: light;
   background: var(--color-fondo);
+  color: var(--color-tinta);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+}
+
+/* Montserrat es solo de la página del taller — **no va en `body`**.
+ *
+ * Este `globals.css` también lo usa `.sitio-legacy` (el grupo `(sitio)`:
+ * blog, comunidad), que son páginas reales ya publicadas y no lo que se
+ * pidió cambiar. Ya hubo un intento de esto en la fuente y en `next/font`
+ * que se revirtió (`1b10112` → `ee1556e`); esta vez va con clase propia sobre
+ * la raíz de `LandingTaller.tsx`, para que nada fuera de esa página cambie. */
+.tipografia-taller {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* El degradado es del sitio viejo, no del documento: la pagina del taller pinta

@@ -40,6 +40,12 @@ function urlDelMapa(t: { address: string | null; lat: number | null; lng: number
   return `https://www.google.com/maps/embed/v1/place?key=${key}&q=${encodeURIComponent(q)}&zoom=16`
 }
 
+/** Ver la nota en `app/[handle]/page.tsx`. */
+function destinoMapa(t: { address: string | null; lat: number | null; lng: number | null }) {
+  if (t.lat !== null && t.lng !== null) return `${t.lat},${t.lng}`
+  return t.address
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
   const taller = await getWorkshopByHandle(handle.toLowerCase(), true).catch(() => null)
@@ -62,7 +68,12 @@ export default async function TallerDemoPage({ params }: Props) {
       handle={handle.toLowerCase()}
       taller={taller}
       logoUrl={crmAssetUrl(taller.logoPath, true)}
+      heroUrl={crmAssetUrl(taller.heroPath, true)}
+      photoUrls={taller.photos
+        .map((p) => crmAssetUrl(p, true))
+        .filter((u): u is string => u !== null)}
       mapaUrl={urlDelMapa(taller)}
+      mapaLinkDestino={destinoMapa(taller)}
       emailContacto={taller.email}
       apiBase="/api/turno/demo"
       demo

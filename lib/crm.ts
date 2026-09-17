@@ -99,6 +99,25 @@ export interface PublicWorkshop {
   /** Ruta **relativa al CRM**. Hay que anteponerle su base, no la de este sitio. */
   logoPath: string | null
   /**
+   * Foto de fondo del hero de ancho completo. `null` = el taller todavía no
+   * subió ninguna, y la landing se dibuja sin esa sección (mismo layout de
+   * siempre). Ruta relativa al CRM, igual que `logoPath`.
+   */
+  heroPath: string | null
+  /** Bajada corta que escribió el instalador. `null` = no completó nada. */
+  description: string | null
+  /** Preset de color de fondo elegido — ver `lib/tema.ts`. */
+  pageTheme: 'BLANCO' | 'GRIS_CLARO' | 'GRIS_OSCURO' | 'NEGRO'
+  /** Cada campo es `null` si no lo completó: no se muestra ese ícono. */
+  social: {
+    instagram: string | null
+    facebook: string | null
+    tiktok: string | null
+    google: string | null
+  }
+  /** Rutas relativas al CRM, en el orden del álbum. Vacío = sin fotos aún. */
+  photos: string[]
+  /**
    * Sobre qué fondo se ve bien el logo, elegido por el taller.
    *
    * Define **solo el color de la cabecera**, no el de la página: hay logos de

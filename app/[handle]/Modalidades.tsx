@@ -1,6 +1,6 @@
 'use client'
 
-import type { PublicWorkshop, RubroServicio } from '@/lib/crm'
+import type { PublicWorkshop } from '@/lib/crm'
 
 /**
  * Cómo trabaja el taller, en tarjetas.
@@ -32,25 +32,50 @@ import type { PublicWorkshop, RubroServicio } from '@/lib/crm'
  * distancia, de cuántas unidades, de cuándo— y mandarlo a un formulario de
  * turno sería prometer una agenda que no aplica.
  */
+/** Llave: "servicio en el taller". */
+function IconoLlave() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14.7 6.3a4 4 0 1 0-5.66 5.66L3 18v3h3l6.04-6.04a4 4 0 0 0 5.66-5.66l-2.83 2.83-2-2Z" />
+    </svg>
+  )
+}
+
+/** Pin de ubicación: "servicio a domicilio". */
+function IconoUbicacion() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.8C5 14.8 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.3" />
+    </svg>
+  )
+}
+
+/** Edificio: "concesionarias" y "casas, oficinas y edificios". */
+function IconoEdificio() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="1" />
+      <path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" />
+    </svg>
+  )
+}
+
 export default function Modalidades({
   taller,
   wa,
   email,
-  onAgendar,
 }: {
   taller: PublicWorkshop
   /** Link de WhatsApp ya armado, o `null` si no cargó teléfono. */
   wa: string | null
   email: string | null
-  /** Baja al formulario y lo deja preparado para ese rubro. */
-  onAgendar: (rubro: RubroServicio) => void
 }) {
-  const boton =
-    'w-full rounded-lg bg-[color:var(--color-acento)] px-4 py-2.5 text-sm font-medium text-white'
   const botonSecundario =
-    'block w-full rounded-lg border border-[color:var(--color-linea)] px-4 py-2.5 text-center text-sm font-medium'
+    'mt-1 block w-full rounded-lg border border-[color:var(--color-linea)] px-3 py-2 text-center text-xs font-medium'
 
   const tarjetas: {
+    icono: React.ReactNode
     activa: boolean
     titulo: string
     texto: string
@@ -60,28 +85,29 @@ export default function Modalidades({
   if (taller.rubros.automotriz) {
     tarjetas.push(
       {
+        icono: <IconoLlave />,
         activa: taller.modalidades.taller,
-        titulo: 'Servicio en el taller',
+        titulo: 'En el taller',
         texto: 'Dejás el vehículo y lo retirás listo.',
-        accion: (
-          <button type="button" onClick={() => onAgendar('AUTOMOTIVE')} className={boton}>
-            Reservar turno
-          </button>
-        ),
+        // Reservar ya está resuelto por el botón grande de arriba — esta
+        // tarjeta es informativa, no repite la acción.
+        accion: null,
       },
       {
+        icono: <IconoUbicacion />,
         activa: taller.modalidades.domicilio,
-        titulo: 'Realizamos servicio a domicilio',
+        titulo: 'A domicilio',
         texto: 'Vamos hasta donde esté el vehículo.',
         accion: wa ? (
           <a href={wa} target="_blank" rel="noreferrer" className={botonSecundario}>
-            Consultar turno por WhatsApp
+            Consultar por WhatsApp
           </a>
         ) : null,
       },
       {
+        icono: <IconoEdificio />,
         activa: taller.modalidades.concesionarias,
-        titulo: 'Servicio especializado para concesionarias',
+        titulo: 'Concesionarias',
         texto: 'Trabajo por volumen y entregas coordinadas.',
         accion: email ? (
           <a href={`mailto:${email}`} className={botonSecundario}>
@@ -97,21 +123,18 @@ export default function Modalidades({
     // funciona el rubro. Nadie lleva su ventana al taller, así que el trabajo
     // en inmuebles empieza sí o sí con alguien yendo a mirar y a medir.
     tarjetas.push({
+      icono: <IconoEdificio />,
       activa: true,
       titulo: 'Casas, oficinas y edificios',
       texto: 'Vamos a medir y te pasamos el presupuesto.',
-      accion: (
-        <button type="button" onClick={() => onAgendar('ARCHITECTURAL')} className={boton}>
-          Pedir una visita
-        </button>
-      ),
+      accion: null,
     })
   }
 
   if (tarjetas.length === 0) return null
 
   return (
-    <div className={`grid gap-3 ${tarjetas.length > 3 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {tarjetas.map((t) => (
         <article
           key={t.titulo}
@@ -122,23 +145,16 @@ export default function Modalidades({
               : 'border-dashed border-[color:var(--color-linea)] bg-transparent opacity-55'
           }`}
         >
+          <span className="text-[color:var(--color-acento)]">{t.icono}</span>
           <h3 className="text-sm font-semibold leading-snug">{t.titulo}</h3>
           <p className="flex-1 text-xs text-[color:var(--color-tenue)]">{t.texto}</p>
 
-          {t.activa ? (
-            // Sin acción quiere decir que falta el dato de contacto que esa
-            // tarjeta necesita. Se dice, en vez de dejar un botón que no lleva
-            // a ningún lado.
-            (t.accion ?? (
-              <p className="text-xs text-[color:var(--color-tenue)]">
-                Consultá por los datos de contacto de arriba.
-              </p>
-            ))
-          ) : (
-            <p className="rounded-lg border border-[color:var(--color-linea)] px-4 py-2.5 text-center text-xs text-[color:var(--color-tenue)]">
+          {!t.activa && (
+            <p className="rounded-lg border border-[color:var(--color-linea)] px-3 py-2 text-center text-xs text-[color:var(--color-tenue)]">
               No disponible
             </p>
           )}
+          {t.activa && t.accion}
         </article>
       ))}
     </div>

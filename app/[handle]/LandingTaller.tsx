@@ -1,35 +1,45 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import HeaderTaller from './HeaderTaller'
-import FormularioTurno from './FormularioTurno'
+import HeroTaller from './HeroTaller'
+import TurnoWizard from './TurnoWizard'
 import Modalidades from './Modalidades'
-import type { PublicWorkshop, PublicService, RubroServicio } from '@/lib/crm'
+import TiposCarousel from './TiposCarousel'
+import AlbumSlider from './AlbumSlider'
+import Footer from './Footer'
+import WhatsAppFlotante from './WhatsAppFlotante'
+import { Mapa } from './iconos'
+import type { PublicWorkshop, PublicService } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
+import { variablesDelTema } from '@/lib/tema'
 
 /**
  * La página pública del taller.
  *
- * Vive en un componente de cliente porque hay una cosa que tienen que
- * compartir dos mitades de la pantalla: **el servicio elegido**. Tocarlo en la
- * lista de arriba baja hasta el formulario y lo deja seleccionado, que es el
- * camino natural —«esto quiero» y después «cuándo»— y evita que la persona
- * elija dos veces lo mismo en dos lugares distintos.
+ * Después del hero, el contenido se reparte en cuatro tramos:
  *
- * En un taller que trabaja sobre autos **y** sobre inmuebles ese servicio
- * elegido hace ademas de interruptor: el formulario de abajo cambia de forma
- * segun el rubro del servicio. Por eso la lista se agrupa en dos bloques con
- * titulo, en vez de mezclar "Polarizado completo" con "Control solar en
- * vidrios" en una lista plana donde nada explica por que el formulario cambio.
+ * 1. Servicios + áreas que cubre (col. 1) al lado del botón que abre el
+ *    wizard de reserva + el álbum de fotos (col. 2).
+ * 2. El carousel "Aplicamos láminas en:".
+ * 3. Una foto de fondo con el nombre bien grande, al lado del mapa y dos
+ *    botones para llegar.
+ * 4. El footer.
  *
- * El layout es de dos columnas en escritorio y una sola en teléfono, que es
- * donde se va a completar casi siempre.
+ * El wizard vive en un solo componente (`TurnoWizard`) montado una vez acá
+ * arriba, y **no** en cada tarjeta de servicio: abrirlo desde una tarjeta
+ * puntual solo cambia qué servicio viene preseleccionado
+ * (`servicioParaWizard`), igual que antes hacía `elegirServicio` con el
+ * formulario inline.
  */
 export default function LandingTaller({
   handle,
   taller,
   logoUrl,
+  heroUrl,
+  photoUrls,
   mapaUrl,
+  mapaLinkDestino,
   emailContacto,
   apiBase = '/api/turno',
   demo = false,
@@ -37,25 +47,26 @@ export default function LandingTaller({
   handle: string
   taller: PublicWorkshop
   logoUrl: string | null
+  /** `null` = todavía no subió foto de portada: se usa el layout de siempre. */
+  heroUrl: string | null
+  /** URLs ya resueltas del álbum, en el orden elegido por el taller. */
+  photoUrls: string[]
   mapaUrl: string | null
+  /** Para el botón "Cómo llegar": coordenadas si hay, si no la dirección en texto. */
+  mapaLinkDestino: string | null
   emailContacto: string | null
   /** `/api/turno` en la página real, `/api/turno/demo` en la de demostración. */
   apiBase?: string
   /** Dibuja la banda de arriba y cambia lo que promete el formulario. */
   demo?: boolean
 }) {
-  const [serviceId, setServiceId] = useState(taller.services[0]?.id ?? '')
-  const [enviado, setEnviado] = useState(false)
-  const formRef = useRef<HTMLDivElement>(null)
+  const [wizardAbierto, setWizardAbierto] = useState(false)
+  const [servicioParaWizard, setServicioParaWizard] = useState<string | undefined>(undefined)
 
   const autos = taller.services.filter((s) => s.category === 'AUTOMOTIVE')
   const inmuebles = taller.services.filter((s) => s.category === 'ARCHITECTURAL')
-  // Los titulos de bloque solo si hay servicios de los dos lados: agrupar una
-  // sola cosa es poner un rotulo donde no hay nada que distinguir.
   const agrupar = autos.length > 0 && inmuebles.length > 0
 
-  // Un taller que solo trabaja sobre inmuebles no agenda turnos: lo que ofrece
-  // es una visita para medir y presupuestar. La pagina entera cambia de verbo.
   const soloArquitectura = taller.rubros.arquitectura && !taller.rubros.automotriz
 
   const dias = formatDias(taller.hours.days)
@@ -64,32 +75,22 @@ export default function LandingTaller({
       ? `${taller.hours.opening} a ${taller.hours.closing}`
       : null
 
-  function bajarAlFormulario() {
-    // Sin `behavior: 'smooth'`: esa opcion se ignora en silencio en algunos
-    // navegadores y el scroll no pasa. La suavidad la pone el CSS, que cuando
-    // no esta soportado degrada a un salto en vez de a nada.
-    formRef.current?.scrollIntoView({ block: 'start' })
-  }
+  // Mismo texto que mostraba siempre la Sección 1 — con hero, se muda ahí
+  // adentro; sin hero, se queda donde estaba. No se reinventa el contenido.
+  const subtituloGenerado = `Instalador autorizado Kristall${
+    taller.rubros.automotriz && taller.rubros.arquitectura
+      ? ' · Vehículos y arquitectura'
+      : soloArquitectura
+        ? ' · Vidrios de casas, oficinas y edificios'
+        : ''
+  }`
+  // La descripción que escribió el instalador manda sobre el texto genérico
+  // — es justo lo que ese campo existe para reemplazar.
+  const subtitulo = taller.description?.trim() || subtituloGenerado
 
-  function elegirServicio(id: string) {
-    setServiceId(id)
-    bajarAlFormulario()
-  }
-
-  /**
-   * Desde las tarjetas de modalidad: baja al formulario **y lo deja en el rubro
-   * correcto**.
-   *
-   * Sin esto, tocar "Pedir una visita" en un taller que hace las dos cosas
-   * bajaria a un formulario que pide patente, porque el servicio seleccionado
-   * seguiria siendo el primero de la lista. Si no hay ningun servicio de ese
-   * rubro cargado no se toca la seleccion: el formulario cae en su rubro por
-   * defecto y el taller lo resuelve hablando.
-   */
-  function irAlFormulario(rubro: RubroServicio) {
-    const primero = (rubro === 'ARCHITECTURAL' ? inmuebles : autos)[0]
-    if (primero) setServiceId(primero.id)
-    bajarAlFormulario()
+  function abrirWizard(serviceId?: string) {
+    setServicioParaWizard(serviceId)
+    setWizardAbierto(true)
   }
 
   const wa = taller.phone
@@ -100,7 +101,10 @@ export default function LandingTaller({
     : null
 
   return (
-    <div className="min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]">
+    <div
+      className="tipografia-taller min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]"
+      style={variablesDelTema(taller.pageTheme)}
+    >
       {/* Va arriba de todo y no se puede cerrar.
           Esta página se va a terminar compartiendo por WhatsApp, y alguien va a
           pedirle turno a un taller que no existe. Que se lea antes que el logo
@@ -120,156 +124,146 @@ export default function LandingTaller({
         fondo={taller.logoBackground}
       />
 
-      {/* ── Sección 1: quién es · qué ofrece ────────────────────────────── */}
+      {heroUrl && <HeroTaller heroUrl={heroUrl} nombre={taller.name} subtitulo={subtitulo} />}
+
+      {/* ── Servicios + áreas · reservar + álbum ────────────────────────── */}
       <section id="servicios" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
         <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-          <div className="flex flex-col gap-5">
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{taller.name}</h1>
-              <p className="mt-2 text-sm text-[color:var(--color-tenue)]">
-                Instalador autorizado Kristall
-                {taller.rubros.automotriz && taller.rubros.arquitectura
-                  ? ' · Vehículos y arquitectura'
-                  : soloArquitectura
-                    ? ' · Vidrios de casas, oficinas y edificios'
-                    : ''}
+          <div className="flex flex-col gap-6">
+            {!heroUrl && (
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{taller.name}</h1>
+                <p className="mt-2 text-sm text-[color:var(--color-tenue)]">{subtitulo}</p>
+              </div>
+            )}
+
+            {(taller.address || dias || horario) && (
+              <p className="text-sm text-[color:var(--color-tenue)]">
+                {[taller.address, [dias, horario].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
               </p>
-            </div>
+            )}
 
-            <dl className="flex flex-col gap-3 text-sm">
-              {taller.address && (
-                <Dato etiqueta="Dónde">{taller.address}</Dato>
-              )}
-              {(dias || horario) && (
-                <Dato etiqueta="Cuándo">{[dias, horario].filter(Boolean).join(', ')}</Dato>
-              )}
-              {taller.phone && (
-                <Dato etiqueta="Teléfono">
-                  <a href={`tel:${taller.phone.replace(/\s/g, '')}`} className="hover:underline">
-                    {taller.phone}
-                  </a>
-                </Dato>
-              )}
-            </dl>
-
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="#agendar"
-                className="rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
-              >
-                {soloArquitectura ? 'Pedir una visita' : 'Agendar un turno'}
-              </a>
-              {wa && (
-                <a
-                  href={wa}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
-                >
-                  Escribir por WhatsApp
-                </a>
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">Servicios</h2>
+              {taller.services.length === 0 ? (
+                <p className="text-sm text-[color:var(--color-tenue)]">
+                  Este taller todavía no cargó sus servicios. Escribile y coordinás directamente.
+                </p>
+              ) : agrupar ? (
+                <div className="flex flex-col gap-5">
+                  <Grupo titulo="Para tu vehículo" servicios={autos} onElegir={abrirWizard} />
+                  <Grupo titulo="Para tu casa u oficina" servicios={inmuebles} onElegir={abrirWizard} />
+                </div>
+              ) : (
+                <ListaServicios servicios={taller.services} onElegir={abrirWizard} />
               )}
             </div>
 
-            {/* Debajo de la descripción del taller: primero quién es, después
-                de qué maneras se le puede llegar. */}
-            <Modalidades taller={taller} wa={wa} email={emailContacto} onAgendar={irAlFormulario} />
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">Dónde trabajamos</h2>
+              <Modalidades taller={taller} wa={wa} email={emailContacto} />
+            </div>
 
-            <p className="mt-2 text-xs text-[color:var(--color-tenue)]">
+            <p className="text-xs text-[color:var(--color-tenue)]">
               Trabaja con láminas <strong className="font-semibold">Kristall Film</strong>, con
               garantía registrada.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">Servicios</h2>
-            {taller.services.length === 0 ? (
-              <p className="text-sm text-[color:var(--color-tenue)]">
-                Este taller todavía no cargó sus servicios. Escribile y coordinás directamente.
-              </p>
-            ) : agrupar ? (
-              <div className="flex flex-col gap-5">
-                <Grupo titulo="Para tu vehículo" servicios={autos} onElegir={elegirServicio} />
-                <Grupo
-                  titulo="Para tu casa u oficina"
-                  servicios={inmuebles}
-                  onElegir={elegirServicio}
-                />
+          <div className="flex flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => abrirWizard()}
+              className="w-full rounded-2xl bg-[color:var(--color-acento)] px-6 py-5 text-lg font-semibold text-white transition-transform hover:scale-[1.01]"
+            >
+              {soloArquitectura ? 'Pedir una visita' : 'Agendar un turno'}
+            </button>
+
+            {photoUrls.length > 0 && (
+              <div>
+                <h2 className="mb-3 text-lg font-semibold">Trabajos realizados</h2>
+                <AlbumSlider fotos={photoUrls} />
               </div>
-            ) : (
-              <ListaServicios servicios={taller.services} onElegir={elegirServicio} />
             )}
           </div>
         </div>
       </section>
 
-      {/* ── Sección 2: pedir el turno · dónde queda ─────────────────────── */}
-      <section
-        id="agendar"
-        ref={formRef}
-        className="border-t border-[color:var(--color-linea)] bg-[color:var(--color-superficie)]/40 scroll-mt-16"
-      >
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-10 md:grid-cols-2 md:gap-14 md:py-14">
-          <div>
-            {enviado ? (
-              <Gracias
-                nombre={taller.name}
-                logoUrl={logoUrl}
-                wa={wa}
-                visita={
-                  taller.services.find((s) => s.id === serviceId)?.category === 'ARCHITECTURAL' ||
-                  (soloArquitectura && taller.services.length === 0)
-                }
+      <TiposCarousel taller={taller} />
+
+      {/* ── Cierre: marca + mapa ─────────────────────────────────────────── */}
+      <section className="grid overflow-hidden md:grid-cols-2">
+        <div
+          className="relative flex min-h-[22rem] items-center px-6 py-10 sm:px-10"
+          style={
+            (photoUrls[0] ?? heroUrl)
+              ? { backgroundImage: `url(${photoUrls[0] ?? heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : undefined
+          }
+        >
+          {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
+          <h2
+            className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
+              photoUrls[0] ?? heroUrl ? 'text-white' : ''
+            }`}
+          >
+            {taller.name}
+          </h2>
+        </div>
+
+        <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
+          {mapaUrl ? (
+            <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
+              <iframe
+                src={mapaUrl}
+                title={`Dónde queda ${taller.name}`}
+                className="block h-72 w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
               />
-            ) : (
-              <>
-                <h2 className="text-2xl font-semibold">
-                  {soloArquitectura ? 'Pedí tu presupuesto' : 'Pedí tu turno'}
-                </h2>
-                <p className="mb-6 mt-1 text-sm text-[color:var(--color-tenue)]">
-                  Dejale tus datos y {taller.name} te contacta para confirmarlo.
-                </p>
-                <FormularioTurno
-                  handle={handle}
-                  services={taller.services}
-                  serviceId={serviceId}
-                  onServiceId={setServiceId}
-                  onListo={() => setEnviado(true)}
-                  apiBase={apiBase}
-                  // Sin servicios cargados no hay categoria de la que derivar la
-                  // forma del formulario. Se usa el rubro del taller, y con los
-                  // dos marcados gana automotriz, que es lo que hace la mayoria.
-                  rubroPorDefecto={
-                    !taller.rubros.automotriz && taller.rubros.arquitectura
-                      ? 'ARCHITECTURAL'
-                      : 'AUTOMOTIVE'
-                  }
-                />
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">Dónde queda</h2>
-            {mapaUrl ? (
-              <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
-                <iframe
-                  src={mapaUrl}
-                  title={`Dónde queda ${taller.name}`}
-                  className="block h-[26rem] w-full border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <p className="text-sm text-[color:var(--color-tenue)]">
-                {taller.address ?? 'Este taller todavía no cargó su dirección.'}
-              </p>
-            )}
-          </div>
+            </div>
+          ) : (
+            <p className="text-sm text-[color:var(--color-tenue)]">
+              {taller.address ?? 'Este taller todavía no cargó su dirección.'}
+            </p>
+          )}
+          {mapaLinkDestino && (
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
+              >
+                <Mapa />
+                Cómo llegar
+              </a>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
+              >
+                Abrir en Maps
+              </a>
+            </div>
+          )}
         </div>
       </section>
+
+      <Footer taller={taller} logoUrl={logoUrl} />
+      <WhatsAppFlotante wa={wa} />
+
+      <TurnoWizard
+        abierto={wizardAbierto}
+        onCerrar={() => setWizardAbierto(false)}
+        handle={handle}
+        taller={taller}
+        apiBase={apiBase}
+        serviceIdInicial={servicioParaWizard}
+        wa={wa}
+      />
     </div>
   )
 }
@@ -350,60 +344,5 @@ function ListaServicios({
         )
       })}
     </ul>
-  )
-}
-
-function Dato({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-2">
-      <dt className="shrink-0 text-[color:var(--color-tenue)]">{etiqueta}:</dt>
-      <dd className="min-w-0">{children}</dd>
-    </div>
-  )
-}
-
-/**
- * El acuse.
- *
- * Cierra con el logo del taller y no con un tilde genérico: la persona acaba de
- * confiarle sus datos a un negocio concreto, y ver su marca es lo que confirma
- * que llegó a donde quería. El WhatsApp queda a mano porque es la duda típica
- * de los cinco minutos siguientes.
- */
-function Gracias({
-  nombre,
-  logoUrl,
-  wa,
-  visita,
-}: {
-  nombre: string
-  logoUrl: string | null
-  wa: string | null
-  /** Si lo que se pidio fue una visita para medir y no un turno. */
-  visita: boolean
-}) {
-  return (
-    <div className="flex flex-col items-center gap-5 rounded-xl border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-8 text-center">
-      {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={nombre} className="max-h-20 max-w-[14rem] object-contain" />
-      ) : (
-        <p className="text-xl font-semibold">{nombre}</p>
-      )}
-      <p className="max-w-sm text-[15px] leading-relaxed">
-        Gracias por la confianza, en breve te confirmaremos {visita ? 'tu visita' : 'tu turno'}. Ante
-        cualquier duda escribinos por WhatsApp.
-      </p>
-      {wa && (
-        <a
-          href={wa}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
-        >
-          Escribir por WhatsApp
-        </a>
-      )}
-    </div>
   )
 }

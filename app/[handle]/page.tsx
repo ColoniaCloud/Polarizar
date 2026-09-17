@@ -23,6 +23,17 @@ function urlDelMapa(t: { address: string | null; lat: number | null; lng: number
 }
 
 /**
+ * Lo que va después de `destination=`/`query=` en los botones "Cómo llegar"
+ * y "Abrir en Maps". A diferencia de `urlDelMapa` no necesita la api key —
+ * son links normales, no un iframe embebido — así que puede haber botón de
+ * mapa aunque no haya iframe.
+ */
+function destinoMapa(t: { address: string | null; lat: number | null; lng: number | null }) {
+  if (t.lat !== null && t.lng !== null) return `${t.lat},${t.lng}`
+  return t.address
+}
+
+/**
  * La página pública de un taller: polariz.ar/tallercarlos
  *
  * Es una ruta dinámica en la raíz, así que compite con todas las rutas del
@@ -83,7 +94,10 @@ export default async function TallerPage({ params }: Props) {
       handle={handle.toLowerCase()}
       taller={taller}
       logoUrl={crmAssetUrl(taller.logoPath)}
+      heroUrl={crmAssetUrl(taller.heroPath)}
+      photoUrls={taller.photos.map((p) => crmAssetUrl(p)).filter((u): u is string => u !== null)}
       mapaUrl={urlDelMapa(taller)}
+      mapaLinkDestino={destinoMapa(taller)}
       emailContacto={taller.email}
     />
   )
