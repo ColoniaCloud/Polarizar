@@ -40,9 +40,9 @@ export function Check() {
   )
 }
 
-export function Chevron() {
+export function Chevron({ className = '' }: { className?: string } = {}) {
   return (
-    <svg {...base} className="size-4">
+    <svg {...base} className={`size-4 ${className}`}>
       <path d="m6 9 6 6 6-6" />
     </svg>
   )
