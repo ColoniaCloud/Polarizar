@@ -48,28 +48,31 @@ const PALETAS: Record<PageTheme, Paleta> = {
   BLANCO: {
     fondo: '#ffffff',
     superficie: '#f6f8fa',
-    linea: '#e3e6ea',
+    // Antes #e3e6ea: contra la superficie (#f6f8fa) el salto era de menos de
+    // un 10% de luminosidad, así que un campo de formulario se veía sin
+    // borde. Este valor da un salto que se nota sin ser un gris duro.
+    linea: '#c7ccd3',
     tinta: '#1e242c',
     tenue: '#6b7480',
   },
   GRIS_CLARO: {
     fondo: '#eceff1',
     superficie: '#f6f7f8',
-    linea: '#d7dbdf',
+    linea: '#c2c7cc',
     tinta: '#20242a',
     tenue: '#5c636b',
   },
   GRIS_OSCURO: {
     fondo: '#20242a',
     superficie: '#2a2f36',
-    linea: '#3a4048',
+    linea: '#4c5560',
     tinta: '#f4f5f7',
     tenue: '#9aa1ab',
   },
   NEGRO: {
     fondo: '#0a0a0a',
     superficie: '#161616',
-    linea: '#2a2a2a',
+    linea: '#3d3d3d',
     tinta: '#fafafa',
     tenue: '#9a9a9a',
   },
