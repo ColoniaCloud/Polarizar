@@ -124,7 +124,17 @@ export default function LandingTaller({
         fondo={taller.logoBackground}
       />
 
-      {heroUrl && <HeroTaller heroUrl={heroUrl} nombre={taller.name} subtitulo={subtitulo} />}
+      {heroUrl && (
+        <HeroTaller
+          heroUrl={heroUrl}
+          taller={taller}
+          subtitulo={subtitulo}
+          wa={wa}
+          dias={dias}
+          horario={horario}
+          email={emailContacto}
+        />
+      )}
 
       {/* ── Servicios + áreas · reservar + álbum ────────────────────────── */}
       <section id="servicios" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
@@ -137,7 +147,9 @@ export default function LandingTaller({
               </div>
             )}
 
-            {(taller.address || dias || horario) && (
+            {/* Con hero, esta misma información ya se muestra ahí adentro —
+                repetirla acá sería ruido. */}
+            {!heroUrl && (taller.address || dias || horario) && (
               <p className="text-sm text-[color:var(--color-tenue)]">
                 {[taller.address, [dias, horario].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
               </p>
@@ -192,63 +204,65 @@ export default function LandingTaller({
       <TiposCarousel taller={taller} />
 
       {/* ── Cierre: marca + mapa ─────────────────────────────────────────── */}
-      <section className="grid overflow-hidden md:grid-cols-2">
-        <div
-          className="relative flex min-h-[22rem] items-center px-6 py-10 sm:px-10"
-          style={
-            (photoUrls[0] ?? heroUrl)
-              ? { backgroundImage: `url(${photoUrls[0] ?? heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-              : undefined
-          }
-        >
-          {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
-          <h2
-            className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
-              photoUrls[0] ?? heroUrl ? 'text-white' : ''
-            }`}
+      <section className="mx-auto max-w-6xl px-5 pb-16 md:pb-24">
+        <div className="grid overflow-hidden rounded-2xl md:grid-cols-2">
+          <div
+            className="relative flex min-h-[26rem] items-center px-6 py-10 sm:px-10"
+            style={
+              (photoUrls[0] ?? heroUrl)
+                ? { backgroundImage: `url(${photoUrls[0] ?? heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : undefined
+            }
           >
-            {taller.name}
-          </h2>
-        </div>
+            {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
+            <h2
+              className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
+                photoUrls[0] ?? heroUrl ? 'text-white' : ''
+              }`}
+            >
+              {taller.name}
+            </h2>
+          </div>
 
-        <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
-          {mapaUrl ? (
-            <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
-              <iframe
-                src={mapaUrl}
-                title={`Dónde queda ${taller.name}`}
-                className="block h-72 w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-[color:var(--color-tenue)]">
-              {taller.address ?? 'Este taller todavía no cargó su dirección.'}
-            </p>
-          )}
-          {mapaLinkDestino && (
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
-              >
-                <Mapa />
-                Cómo llegar
-              </a>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
-              >
-                Abrir en Maps
-              </a>
-            </div>
-          )}
+          <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
+            {mapaUrl ? (
+              <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
+                <iframe
+                  src={mapaUrl}
+                  title={`Dónde queda ${taller.name}`}
+                  className="block h-72 w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-[color:var(--color-tenue)]">
+                {taller.address ?? 'Este taller todavía no cargó su dirección.'}
+              </p>
+            )}
+            {mapaLinkDestino && (
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
+                >
+                  <Mapa />
+                  Cómo llegar
+                </a>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
+                >
+                  Abrir en Maps
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
