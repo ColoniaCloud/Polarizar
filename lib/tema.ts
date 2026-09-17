@@ -14,12 +14,31 @@ import type { CSSProperties } from 'react'
  */
 export type PageTheme = 'BLANCO' | 'GRIS_CLARO' | 'GRIS_OSCURO' | 'NEGRO'
 
+/**
+ * El acento sí es un preset aparte del fondo: cambia solo el color de
+ * botones/links/íconos activos, no la paleta entera. Mismo criterio de
+ * "swatches curados y no un color picker libre" que `PageTheme` — el acento
+ * siempre lleva texto blanco encima en los botones sólidos (ver los usos de
+ * `bg-[color:var(--color-acento)] text-white]` en el resto de la página), así
+ * que cada opción está elegida a mano para que ese contraste funcione.
+ */
+export type AccentColor = 'AZUL' | 'VERDE' | 'VIOLETA' | 'ROJO' | 'NARANJA' | 'ROSA'
+
 interface Paleta {
   fondo: string
   superficie: string
   linea: string
   tinta: string
   tenue: string
+}
+
+const ACENTOS: Record<AccentColor, string> = {
+  AZUL: '#0284c7',
+  VERDE: '#059669',
+  VIOLETA: '#7c3aed',
+  ROJO: '#dc2626',
+  NARANJA: '#ea580c',
+  ROSA: '#db2777',
 }
 
 const PALETAS: Record<PageTheme, Paleta> = {
@@ -58,11 +77,11 @@ const PALETAS: Record<PageTheme, Paleta> = {
 
 /**
  * Las variables CSS del preset elegido, para pisar las de `globals.css` en un
- * `style={...}` sobre el contenedor de la página. Con `BLANCO` (el default)
- * no hace falta pisar nada, pero se devuelve igual por simplicidad — pisar
- * con el mismo valor no cambia nada visible.
+ * `style={...}` sobre el contenedor de la página. Con `BLANCO`+`AZUL` (los
+ * defaults) no hace falta pisar nada, pero se devuelve igual por simplicidad
+ * — pisar con el mismo valor no cambia nada visible.
  */
-export function variablesDelTema(tema: PageTheme): CSSProperties {
+export function variablesDelTema(tema: PageTheme, acento: AccentColor): CSSProperties {
   const p = PALETAS[tema]
   return {
     '--color-fondo': p.fondo,
@@ -70,5 +89,6 @@ export function variablesDelTema(tema: PageTheme): CSSProperties {
     '--color-linea': p.linea,
     '--color-tinta': p.tinta,
     '--color-tenue': p.tenue,
+    '--color-acento': ACENTOS[acento],
   } as CSSProperties
 }

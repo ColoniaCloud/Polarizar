@@ -103,7 +103,7 @@ export default function LandingTaller({
   return (
     <div
       className="tipografia-taller min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]"
-      style={variablesDelTema(taller.pageTheme)}
+      style={variablesDelTema(taller.pageTheme, taller.accentColor)}
     >
       {/* Va arriba de todo y no se puede cerrar.
           Esta página se va a terminar compartiendo por WhatsApp, y alguien va a

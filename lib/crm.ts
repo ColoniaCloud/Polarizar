@@ -108,6 +108,8 @@ export interface PublicWorkshop {
   description: string | null
   /** Preset de color de fondo elegido — ver `lib/tema.ts`. */
   pageTheme: 'BLANCO' | 'GRIS_CLARO' | 'GRIS_OSCURO' | 'NEGRO'
+  /** Preset de color de acento elegido — ver `lib/tema.ts`. */
+  accentColor: 'AZUL' | 'VERDE' | 'VIOLETA' | 'ROJO' | 'NARANJA' | 'ROSA'
   /** Cada campo es `null` si no lo completó: no se muestra ese ícono. */
   social: {
     instagram: string | null
