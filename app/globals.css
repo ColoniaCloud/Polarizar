@@ -170,6 +170,28 @@ body {
   text-decoration: underline;
 }
 
+/* Entrada letra por letra del "POLARIZAR" del home — ver `(sitio)/page.tsx`.
+ * Detrás de `prefers-reduced-motion` por el mismo motivo que el scroll suave
+ * de más arriba: sin la media query, quien prefiere no ver movimiento se
+ * queda con las letras invisibles a mitad de animación. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes letra-entrada {
+    from {
+      opacity: 0;
+      transform: translateY(0.5em);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .letra-entrada {
+    opacity: 0;
+    animation: letra-entrada 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
