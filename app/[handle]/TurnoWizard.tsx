@@ -141,10 +141,11 @@ export default function TurnoWizard({
   }
 
   function irA(destino: number) {
-    // Un mínimo de sentido común entre paso 1 y 2: sin bien elegido no hay
-    // nada que presupuestar. El resto de la validación —la misma de siempre—
-    // corre entera al confirmar, no acá.
-    if (destino > 1 && paso === 1 && (esArquitectura ? !inmueble : !vehiculo)) {
+    // Un mínimo de sentido común al salir del paso 2 (donde vive el selector
+    // de vehículo/inmueble): sin bien elegido no hay nada que presupuestar.
+    // El resto de la validación —la misma de siempre— corre entera al
+    // confirmar, no acá.
+    if (destino > paso && paso === 2 && (esArquitectura ? !inmueble : !vehiculo)) {
       setErrorBien(true)
       setEstado({
         tipo: 'error',
@@ -162,7 +163,7 @@ export default function TurnoWizard({
     const f = new FormData(e.currentTarget)
 
     if (esArquitectura ? !inmueble : !vehiculo) {
-      setPaso(1)
+      setPaso(2)
       setErrorBien(true)
       setEstado({
         tipo: 'error',
