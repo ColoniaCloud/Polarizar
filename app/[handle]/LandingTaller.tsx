@@ -116,13 +116,7 @@ export default function LandingTaller({
         </div>
       )}
 
-      <HeaderTaller
-        nombre={taller.name}
-        logoUrl={logoUrl}
-        telefono={taller.phone}
-        email={emailContacto}
-        fondo={taller.logoBackground}
-      />
+      <HeaderTaller nombre={taller.name} logoUrl={logoUrl} fondo={taller.logoBackground} />
 
       {heroUrl && (
         <HeroTaller
@@ -133,6 +127,7 @@ export default function LandingTaller({
           dias={dias}
           horario={horario}
           email={emailContacto}
+          onAgendar={() => abrirWizard()}
         />
       )}
 
