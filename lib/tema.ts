@@ -26,7 +26,13 @@ export type AccentColor = 'AZUL' | 'VERDE' | 'VIOLETA' | 'ROJO' | 'NARANJA' | 'R
 
 interface Paleta {
   fondo: string
+  /** Superficie de tarjetas — puede ser más clara o más oscura que `fondo`
+   *  según el preset, lo que importa es que se distinga de él. */
   superficie: string
+  /** A diferencia de `superficie`, siempre más oscura que `fondo` en los 4
+   *  presets — para secciones enteras que necesitan diferenciarse del resto
+   *  de la página sin ser una "tarjeta". */
+  realce: string
   linea: string
   tinta: string
   tenue: string
@@ -48,6 +54,7 @@ const PALETAS: Record<PageTheme, Paleta> = {
   BLANCO: {
     fondo: '#ffffff',
     superficie: '#f6f8fa',
+    realce: '#eef0f2',
     // Antes #e3e6ea: contra la superficie (#f6f8fa) el salto era de menos de
     // un 10% de luminosidad, así que un campo de formulario se veía sin
     // borde. Este valor da un salto que se nota sin ser un gris duro.
@@ -58,6 +65,7 @@ const PALETAS: Record<PageTheme, Paleta> = {
   GRIS_CLARO: {
     fondo: '#eceff1',
     superficie: '#f6f7f8',
+    realce: '#e1e5e8',
     linea: '#c2c7cc',
     tinta: '#20242a',
     tenue: '#5c636b',
@@ -65,6 +73,7 @@ const PALETAS: Record<PageTheme, Paleta> = {
   GRIS_OSCURO: {
     fondo: '#20242a',
     superficie: '#2a2f36',
+    realce: '#191c21',
     linea: '#4c5560',
     tinta: '#f4f5f7',
     tenue: '#9aa1ab',
@@ -72,6 +81,7 @@ const PALETAS: Record<PageTheme, Paleta> = {
   NEGRO: {
     fondo: '#0a0a0a',
     superficie: '#161616',
+    realce: '#040404',
     linea: '#3d3d3d',
     tinta: '#fafafa',
     tenue: '#9a9a9a',
@@ -89,6 +99,7 @@ export function variablesDelTema(tema: PageTheme, acento: AccentColor): CSSPrope
   return {
     '--color-fondo': p.fondo,
     '--color-superficie': p.superficie,
+    '--color-realce': p.realce,
     '--color-linea': p.linea,
     '--color-tinta': p.tinta,
     '--color-tenue': p.tenue,

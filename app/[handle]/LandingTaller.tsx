@@ -3,34 +3,49 @@
 import { useState } from 'react'
 import HeaderTaller from './HeaderTaller'
 import HeroTaller from './HeroTaller'
+import SidebarTaller from './SidebarTaller'
 import TurnoWizard from './TurnoWizard'
 import Modalidades from './Modalidades'
 import TiposCarousel from './TiposCarousel'
 import AlbumSlider from './AlbumSlider'
 import Footer from './Footer'
 import WhatsAppFlotante from './WhatsAppFlotante'
-import { Mapa } from './iconos'
+import { Mapa, Whatsapp, Mail, Instagram, Facebook, Tiktok, Google } from './iconos'
 import type { PublicWorkshop, PublicService } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
 import { variablesDelTema } from '@/lib/tema'
 
+const REDES: { key: 'instagram' | 'facebook' | 'tiktok' | 'google'; label: string; icono: React.ReactNode }[] = [
+  { key: 'instagram', label: 'Instagram', icono: <Instagram /> },
+  { key: 'facebook', label: 'Facebook', icono: <Facebook /> },
+  { key: 'tiktok', label: 'TikTok', icono: <Tiktok /> },
+  { key: 'google', label: 'Google (Maps o Negocio)', icono: <Google /> },
+]
+
 /**
  * La página pública del taller.
  *
- * Después del hero, el contenido se reparte en cuatro tramos:
+ * Después del hero (ahora solo la foto, sin texto encima), el contenido se
+ * reparte en:
  *
- * 1. Servicios + áreas que cubre (col. 1) al lado del botón que abre el
- *    wizard de reserva + el álbum de fotos (col. 2).
- * 2. El carousel "Aplicamos láminas en:".
- * 3. Una foto de fondo con el nombre bien grande, al lado del mapa y dos
+ * 1. Info y descripción del taller / servicios, en dos columnas sobre un
+ *    fondo levemente más oscuro que el resto de la página.
+ * 2. Dónde trabajamos, en una sola línea de tarjetas.
+ * 3. Trabajos realizados (si subió fotos).
+ * 4. El carousel "Aplicamos láminas en:".
+ * 5. Una foto de fondo con el nombre bien grande, al lado del mapa y dos
  *    botones para llegar.
- * 4. El footer.
+ * 6. El footer.
  *
  * El wizard vive en un solo componente (`TurnoWizard`) montado una vez acá
  * arriba, y **no** en cada tarjeta de servicio: abrirlo desde una tarjeta
  * puntual solo cambia qué servicio viene preseleccionado
  * (`servicioParaWizard`), igual que antes hacía `elegirServicio` con el
  * formulario inline.
+ *
+ * El menú lateral (`SidebarTaller`) vive afuera de la columna de contenido,
+ * como hermano en el mismo `flex` — así puede empujarla en escritorio sin
+ * que el contenido tenga que saber que existe.
  */
 export default function LandingTaller({
   handle,
@@ -62,6 +77,7 @@ export default function LandingTaller({
 }) {
   const [wizardAbierto, setWizardAbierto] = useState(false)
   const [servicioParaWizard, setServicioParaWizard] = useState<string | undefined>(undefined)
+  const [sidebarAbierto, setSidebarAbierto] = useState(false)
 
   const autos = taller.services.filter((s) => s.category === 'AUTOMOTIVE')
   const inmuebles = taller.services.filter((s) => s.category === 'ARCHITECTURAL')
@@ -74,9 +90,12 @@ export default function LandingTaller({
     taller.hours.opening && taller.hours.closing
       ? `${taller.hours.opening} a ${taller.hours.closing}`
       : null
+  const direccionYHorario = [taller.address, [dias, horario].filter(Boolean).join(', ')]
+    .filter(Boolean)
+    .join(' · ')
 
-  // Mismo texto que mostraba siempre la Sección 1 — con hero, se muda ahí
-  // adentro; sin hero, se queda donde estaba. No se reinventa el contenido.
+  // Mismo texto que mostraba siempre el hero viejo. No se reinventa el
+  // contenido, solo se muda de lugar.
   const subtituloGenerado = `Instalador autorizado Kristall${
     taller.rubros.automotriz && taller.rubros.arquitectura
       ? ' · Vehículos y arquitectura'
@@ -87,6 +106,8 @@ export default function LandingTaller({
   // La descripción que escribió el instalador manda sobre el texto genérico
   // — es justo lo que ese campo existe para reemplazar.
   const subtitulo = taller.description?.trim() || subtituloGenerado
+
+  const redesActivas = REDES.filter((r) => taller.social[r.key])
 
   function abrirWizard(serviceId?: string) {
     setServicioParaWizard(serviceId)
@@ -116,153 +137,206 @@ export default function LandingTaller({
         </div>
       )}
 
-      <HeaderTaller nombre={taller.name} logoUrl={logoUrl} fondo={taller.logoBackground} />
+      <div className="flex">
+        <div className="min-w-0 flex-1">
+          <HeaderTaller
+            nombre={taller.name}
+            logoUrl={logoUrl}
+            fondo={taller.logoBackground}
+            onAbrirMenu={() => setSidebarAbierto(true)}
+          />
 
-      {heroUrl && (
-        <HeroTaller
-          heroUrl={heroUrl}
+          {heroUrl && <HeroTaller heroUrl={heroUrl} onAgendar={() => abrirWizard()} />}
+
+          {/* ── Info y descripción · servicios ──────────────────────────── */}
+          <section className="bg-[color:var(--color-realce)]">
+            <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
+              <div className="grid gap-10 md:grid-cols-2 md:gap-14">
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                      {taller.name}
+                    </h1>
+                    {subtitulo && (
+                      <p className="mt-2 text-sm text-[color:var(--color-tenue)]">{subtitulo}</p>
+                    )}
+                  </div>
+
+                  {direccionYHorario && (
+                    <p className="text-sm text-[color:var(--color-tenue)]">{direccionYHorario}</p>
+                  )}
+
+                  {(wa || emailContacto) && (
+                    <div className="flex flex-col gap-1.5 text-sm">
+                      {wa && (
+                        <a
+                          href={wa}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]"
+                        >
+                          <Whatsapp />
+                          {taller.phone}
+                        </a>
+                      )}
+                      {emailContacto && (
+                        <a
+                          href={`mailto:${emailContacto}`}
+                          className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]"
+                        >
+                          <Mail />
+                          {emailContacto}
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {redesActivas.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      {redesActivas.map((r) => (
+                        <a
+                          key={r.key}
+                          href={taller.social[r.key] ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={r.label}
+                          className="text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
+                        >
+                          {r.icono}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-[color:var(--color-tenue)]">
+                    Trabaja con láminas <strong className="font-semibold">Kristall Film</strong>, con
+                    garantía registrada.
+                  </p>
+                </div>
+
+                {/* 60vh y scroll interno son solo de escritorio: en celular la
+                    página entera scrollea, no hace falta un scroll anidado. */}
+                <div
+                  id="servicios"
+                  className="flex flex-col gap-3 md:max-h-[60vh] md:overflow-y-auto md:pr-2"
+                >
+                  <h2 className="text-lg font-semibold">Servicios</h2>
+                  {taller.services.length === 0 ? (
+                    <p className="text-sm text-[color:var(--color-tenue)]">
+                      Este taller todavía no cargó sus servicios. Escribile y coordinás directamente.
+                    </p>
+                  ) : agrupar ? (
+                    <div className="flex flex-col gap-5">
+                      <Grupo titulo="Para tu vehículo" servicios={autos} onElegir={abrirWizard} />
+                      <Grupo
+                        titulo="Para tu casa u oficina"
+                        servicios={inmuebles}
+                        onElegir={abrirWizard}
+                      />
+                    </div>
+                  ) : (
+                    <ListaServicios servicios={taller.services} onElegir={abrirWizard} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Dónde trabajamos ─────────────────────────────────────────── */}
+          <section id="donde-trabajamos" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
+            <h2 className="mb-4 text-lg font-semibold md:text-xl">Dónde trabajamos</h2>
+            <Modalidades taller={taller} wa={wa} email={emailContacto} />
+          </section>
+
+          {/* ── Trabajos realizados ──────────────────────────────────────── */}
+          {photoUrls.length > 0 && (
+            <section id="trabajos" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
+              <h2 className="mb-4 text-lg font-semibold md:text-xl">Trabajos realizados</h2>
+              <AlbumSlider fotos={photoUrls} />
+            </section>
+          )}
+
+          <TiposCarousel taller={taller} />
+
+          {/* ── Cierre: marca + mapa ─────────────────────────────────────── */}
+          <section id="ubicacion" className="mx-auto max-w-6xl px-5 pb-16 md:pb-24">
+            <div className="grid overflow-hidden rounded-2xl md:grid-cols-2">
+              <div
+                className="relative flex min-h-[26rem] items-center px-6 py-10 sm:px-10"
+                style={
+                  (photoUrls[0] ?? heroUrl)
+                    ? {
+                        backgroundImage: `url(${photoUrls[0] ?? heroUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              >
+                {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
+                <h2
+                  className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
+                    photoUrls[0] ?? heroUrl ? 'text-white' : ''
+                  }`}
+                >
+                  {taller.name}
+                </h2>
+              </div>
+
+              <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
+                {mapaUrl ? (
+                  <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
+                    <iframe
+                      src={mapaUrl}
+                      title={`Dónde queda ${taller.name}`}
+                      className="block h-72 w-full border-0"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-[color:var(--color-tenue)]">
+                    {taller.address ?? 'Este taller todavía no cargó su dirección.'}
+                  </p>
+                )}
+                {mapaLinkDestino && (
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
+                    >
+                      <Mapa />
+                      Cómo llegar
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
+                    >
+                      Abrir en Maps
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <Footer taller={taller} logoUrl={logoUrl} onAgendar={() => abrirWizard()} />
+          <WhatsAppFlotante wa={wa} />
+        </div>
+
+        <SidebarTaller
+          abierto={sidebarAbierto}
+          onCerrar={() => setSidebarAbierto(false)}
           taller={taller}
-          subtitulo={subtitulo}
-          wa={wa}
-          dias={dias}
-          horario={horario}
-          email={emailContacto}
+          tieneAlbum={photoUrls.length > 0}
           onAgendar={() => abrirWizard()}
         />
-      )}
-
-      {/* ── Servicios + áreas · reservar + álbum ────────────────────────── */}
-      <section id="servicios" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
-        <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-          <div className="flex flex-col gap-6">
-            {!heroUrl && (
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{taller.name}</h1>
-                <p className="mt-2 text-sm text-[color:var(--color-tenue)]">{subtitulo}</p>
-              </div>
-            )}
-
-            {/* Con hero, esta misma información ya se muestra ahí adentro —
-                repetirla acá sería ruido. */}
-            {!heroUrl && (taller.address || dias || horario) && (
-              <p className="text-sm text-[color:var(--color-tenue)]">
-                {[taller.address, [dias, horario].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
-              </p>
-            )}
-
-            <div>
-              <h2 className="mb-3 text-lg font-semibold">Servicios</h2>
-              {taller.services.length === 0 ? (
-                <p className="text-sm text-[color:var(--color-tenue)]">
-                  Este taller todavía no cargó sus servicios. Escribile y coordinás directamente.
-                </p>
-              ) : agrupar ? (
-                <div className="flex flex-col gap-5">
-                  <Grupo titulo="Para tu vehículo" servicios={autos} onElegir={abrirWizard} />
-                  <Grupo titulo="Para tu casa u oficina" servicios={inmuebles} onElegir={abrirWizard} />
-                </div>
-              ) : (
-                <ListaServicios servicios={taller.services} onElegir={abrirWizard} />
-              )}
-            </div>
-
-            <div>
-              <h2 className="mb-3 text-lg font-semibold">Dónde trabajamos</h2>
-              <Modalidades taller={taller} wa={wa} email={emailContacto} />
-            </div>
-
-            <p className="text-xs text-[color:var(--color-tenue)]">
-              Trabaja con láminas <strong className="font-semibold">Kristall Film</strong>, con
-              garantía registrada.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <button
-              type="button"
-              onClick={() => abrirWizard()}
-              className="w-full rounded-2xl bg-[color:var(--color-acento)] px-6 py-5 text-lg font-semibold text-white transition-transform hover:scale-[1.01]"
-            >
-              {soloArquitectura ? 'Pedir una visita' : 'Agendar un turno'}
-            </button>
-
-            {photoUrls.length > 0 && (
-              <div>
-                <h2 className="mb-3 text-lg font-semibold">Trabajos realizados</h2>
-                <AlbumSlider fotos={photoUrls} />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <TiposCarousel taller={taller} />
-
-      {/* ── Cierre: marca + mapa ─────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-16 md:pb-24">
-        <div className="grid overflow-hidden rounded-2xl md:grid-cols-2">
-          <div
-            className="relative flex min-h-[26rem] items-center px-6 py-10 sm:px-10"
-            style={
-              (photoUrls[0] ?? heroUrl)
-                ? { backgroundImage: `url(${photoUrls[0] ?? heroUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                : undefined
-            }
-          >
-            {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
-            <h2
-              className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
-                photoUrls[0] ?? heroUrl ? 'text-white' : ''
-              }`}
-            >
-              {taller.name}
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
-            {mapaUrl ? (
-              <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
-                <iframe
-                  src={mapaUrl}
-                  title={`Dónde queda ${taller.name}`}
-                  className="block h-72 w-full border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <p className="text-sm text-[color:var(--color-tenue)]">
-                {taller.address ?? 'Este taller todavía no cargó su dirección.'}
-              </p>
-            )}
-            {mapaLinkDestino && (
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
-                >
-                  <Mapa />
-                  Cómo llegar
-                </a>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
-                >
-                  Abrir en Maps
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <Footer taller={taller} logoUrl={logoUrl} />
-      <WhatsAppFlotante wa={wa} />
+      </div>
 
       <TurnoWizard
         abierto={wizardAbierto}

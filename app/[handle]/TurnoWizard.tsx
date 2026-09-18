@@ -12,12 +12,12 @@ import type { PublicWorkshop, PublicService, RubroServicio } from '@/lib/crm'
 import { formatPrecio, formatDuracion } from '@/lib/formato'
 
 /**
- * El popup de reserva, en 4 pasos.
+ * El popup de reserva, en 2 pasos.
  *
  * **No inventa ningún campo nuevo.** Es exactamente lo que pedía
- * `FormularioTurno.tsx` en una sola pantalla, reorganizado: 1) rubro y
- * servicio, 2) datos del bien, 3) horario, 4) datos personales y confirmar.
- * Los sub-componentes (`SelectVehiculo`, `SelectInmueble`, `SelectorHorario`,
+ * `FormularioTurno.tsx` en una sola pantalla, reorganizado: 1) rubro,
+ * servicio y datos del bien, 2) horario, datos personales y confirmar. Los
+ * sub-componentes (`SelectVehiculo`, `SelectInmueble`, `SelectorHorario`,
  * `SelectorVisita`) son los mismos, sin tocar su lógica.
  *
  * Todos los campos quedan **siempre montados** en el DOM — los pasos se
@@ -51,7 +51,7 @@ async function achicarFoto(file: File): Promise<{ base64: string; mime: string }
 
 const HORA_DE_FRANJA: Record<string, string> = { MANANA: '09:00', TARDE: '14:00' }
 
-const PASOS = ['Servicio', 'Datos', 'Horario', 'Confirmar']
+const PASOS = ['Servicio', 'Horario y datos']
 
 export default function TurnoWizard({
   abierto,
@@ -141,11 +141,11 @@ export default function TurnoWizard({
   }
 
   function irA(destino: number) {
-    // Un mínimo de sentido común al salir del paso 2 (donde vive el selector
+    // Un mínimo de sentido común al salir del paso 1 (donde vive el selector
     // de vehículo/inmueble): sin bien elegido no hay nada que presupuestar.
     // El resto de la validación —la misma de siempre— corre entera al
     // confirmar, no acá.
-    if (destino > paso && paso === 2 && (esArquitectura ? !inmueble : !vehiculo)) {
+    if (destino > paso && paso === 1 && (esArquitectura ? !inmueble : !vehiculo)) {
       setErrorBien(true)
       setEstado({
         tipo: 'error',
@@ -163,7 +163,7 @@ export default function TurnoWizard({
     const f = new FormData(e.currentTarget)
 
     if (esArquitectura ? !inmueble : !vehiculo) {
-      setPaso(2)
+      setPaso(1)
       setErrorBien(true)
       setEstado({
         tipo: 'error',
@@ -178,7 +178,7 @@ export default function TurnoWizard({
       const dia = String(f.get('dia') ?? '')
       const franja = String(f.get('timeWindow') ?? 'MANANA')
       if (!dia) {
-        setPaso(3)
+        setPaso(2)
         setEstado({ tipo: 'error', msg: 'Elegí qué día te viene bien.' })
         return
       }
@@ -191,7 +191,7 @@ export default function TurnoWizard({
         const dia = String(f.get('dia') ?? '')
         const hora = String(f.get('hora') ?? '')
         if (!dia || !hora) {
-          setPaso(3)
+          setPaso(2)
           setEstado({ tipo: 'error', msg: 'Elegí cuándo querés el turno.' })
           return
         }
@@ -199,13 +199,13 @@ export default function TurnoWizard({
       }
     }
     if (Number.isNaN(preferredAt.getTime())) {
-      setPaso(3)
+      setPaso(2)
       setEstado({ tipo: 'error', msg: 'Esa fecha no es válida.' })
       return
     }
 
     if (esArquitectura && !String(f.get('siteAddress') ?? '').trim()) {
-      setPaso(2)
+      setPaso(1)
       setEstado({ tipo: 'error', msg: 'Poné la dirección del inmueble.' })
       return
     }
@@ -252,7 +252,7 @@ export default function TurnoWizard({
 
   const campo =
     'rounded-lg border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-2.5'
-  const paso2Titulo = esArquitectura ? '¿Qué tipo de inmueble es?' : 'Tipo de vehículo'
+  const tituloBien = esArquitectura ? '¿Qué tipo de inmueble es?' : 'Tipo de vehículo'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
@@ -267,7 +267,10 @@ export default function TurnoWizard({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)] shadow-2xl sm:rounded-2xl"
+        // En celular, dos pasos con más campos cada uno piden más aire que
+        // el modal angosto de antes — casi toda la pantalla en vez de un
+        // 92vh que ya quedaba ajustado. En escritorio se queda como estaba.
+        className="relative flex max-h-[95dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)] shadow-2xl sm:max-h-[92vh] sm:rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-[color:var(--color-linea)] px-5 py-4">
           <h2 className="text-base font-semibold">
@@ -374,10 +377,10 @@ export default function TurnoWizard({
                   )}
                 </div>
 
-                {/* ── Paso 2: datos del bien ───────────────────────────────── */}
-                <div className={paso === 2 ? 'flex flex-col gap-4' : 'hidden'}>
+                {/* ── Sigue en el paso 1: datos del bien ──────────────────── */}
+                <div className={paso === 1 ? 'flex flex-col gap-4' : 'hidden'}>
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-sm font-medium">{paso2Titulo}</span>
+                    <span className="text-sm font-medium">{tituloBien}</span>
                     {esArquitectura ? (
                       <SelectInmueble
                         name="propertyType"
@@ -487,8 +490,8 @@ export default function TurnoWizard({
                   </fieldset>
                 </div>
 
-                {/* ── Paso 3: horario ───────────────────────────────────────── */}
-                <div className={paso === 3 ? 'flex flex-col gap-4' : 'hidden'}>
+                {/* ── Paso 2: horario ───────────────────────────────────────── */}
+                <div className={paso === 2 ? 'flex flex-col gap-4' : 'hidden'}>
                   {esArquitectura ? (
                     <SelectorVisita />
                   ) : (
@@ -502,8 +505,8 @@ export default function TurnoWizard({
                   )}
                 </div>
 
-                {/* ── Paso 4: datos personales + confirmar ─────────────────── */}
-                <div className={paso === 4 ? 'flex flex-col gap-4' : 'hidden'}>
+                {/* ── Sigue en el paso 2: datos personales + confirmar ────── */}
+                <div className={paso === 2 ? 'flex flex-col gap-4' : 'hidden'}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="flex flex-col gap-1.5">
                       <span className="text-sm font-medium">Tu nombre</span>
@@ -596,7 +599,7 @@ export default function TurnoWizard({
                     <span />
                   )}
 
-                  {paso < 4 ? (
+                  {paso < 2 ? (
                     <button
                       type="button"
                       onClick={() => irA(paso + 1)}

@@ -134,12 +134,15 @@ export default function Modalidades({
   if (tarjetas.length === 0) return null
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    // Una sola línea siempre: en escritorio las 3-4 tarjetas entran holgadas
+    // en el ancho de contenido, y en celular scrollea en vez de achicarse
+    // hasta ser ilegible.
+    <div className="flex gap-3 overflow-x-auto pb-1">
       {tarjetas.map((t) => (
         <article
           key={t.titulo}
           aria-disabled={!t.activa}
-          className={`flex flex-col gap-2 rounded-xl border p-4 ${
+          className={`flex w-56 shrink-0 flex-col gap-2 rounded-xl border p-4 sm:w-64 ${
             t.activa
               ? 'border-[color:var(--color-linea)] bg-[color:var(--color-superficie)]'
               : 'border-dashed border-[color:var(--color-linea)] bg-transparent opacity-55'

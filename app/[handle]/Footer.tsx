@@ -21,9 +21,11 @@ const REDES: { key: 'instagram' | 'facebook' | 'tiktok' | 'google'; label: strin
 export default function Footer({
   taller,
   logoUrl,
+  onAgendar,
 }: {
   taller: PublicWorkshop
   logoUrl: string | null
+  onAgendar: () => void
 }) {
   const redesActivas = REDES.filter((r) => taller.social[r.key])
 
@@ -61,9 +63,18 @@ export default function Footer({
           <a href="#servicios" className="text-white/60 hover:text-white">
             Servicios
           </a>
-          <a href="#agendar" className="text-white/60 hover:text-white">
-            Agendar un turno
+          <a href="#donde-trabajamos" className="text-white/60 hover:text-white">
+            Dónde trabajamos
           </a>
+          <a href="#ubicacion" className="text-white/60 hover:text-white">
+            Ubicación
+          </a>
+          {/* No hay una sección "agendar": el botón vive flotando sobre el
+              hero y en el sidebar. Este es el único lugar donde no hay
+              ancla posible, así que abre el wizard directo. */}
+          <button type="button" onClick={onAgendar} className="text-left text-white/60 hover:text-white">
+            Agendar un turno
+          </button>
         </div>
 
         {/* Col 3: el respaldo de Kristall */}
