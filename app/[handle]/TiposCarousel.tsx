@@ -12,14 +12,6 @@ const ICONOS_INMUEBLE: Record<string, () => React.JSX.Element> = {
   OTRO: Otro,
 }
 
-/**
- * "Aplicamos láminas en:" — un carousel horizontal de a qué se le aplica la
- * lámina. Autos si el taller es automotriz, inmuebles si es de arquitectura,
- * los dos juntos si hace ambas cosas.
- *
- * `scroll-snap` a mano y no una librería: no hay ninguna instalada en este
- * repo, y el resto de `polarizar` evita dependencias a propósito.
- */
 export default function TiposCarousel({ taller }: { taller: PublicWorkshop }) {
   const items: { key: string; label: string; render: ReactNode }[] = []
 
@@ -29,7 +21,7 @@ export default function TiposCarousel({ taller }: { taller: PublicWorkshop }) {
         key: v.slug,
         label: v.label,
         // eslint-disable-next-line @next/next/no-img-element
-        render: <img src={v.icon} alt="" className="h-14 w-auto object-contain" />,
+        render: <img src={v.icon} alt={v.label} className="h-8 w-8 object-contain md:h-9 md:w-9" />,
       })
     }
   }
@@ -41,7 +33,7 @@ export default function TiposCarousel({ taller }: { taller: PublicWorkshop }) {
         key: t.slug,
         label: t.label,
         render: (
-          <div className="text-[color:var(--color-acento)] [&>svg]:size-10">
+          <div className="flex items-center justify-center text-[color:var(--color-acento)] [&>svg]:size-7 [&>svg]:md:size-8">
             <Icono />
           </div>
         ),
@@ -51,22 +43,32 @@ export default function TiposCarousel({ taller }: { taller: PublicWorkshop }) {
 
   if (items.length === 0) return null
 
+  const visibleItems = [...items, ...items]
+
   return (
-    <section className="border-t border-[color:var(--color-linea)] py-10 md:py-14">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="mb-6 text-xl font-semibold">Aplicamos láminas en:</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2 [scroll-snap-type:x_mandatory]">
-          {items.map((it) => (
-            <div
-              key={it.key}
-              className="flex w-28 shrink-0 flex-col items-center gap-3 rounded-xl border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] px-4 py-5 [scroll-snap-align:start]"
-            >
-              <div className="flex h-14 items-center justify-center">{it.render}</div>
-              <span className="text-center text-xs font-medium text-[color:var(--color-tenue)]">
-                {it.label}
-              </span>
-            </div>
-          ))}
+    <section className="bg-[color:var(--color-realce)] py-10 md:py-14">
+      <div className="mx-auto max-w-[1280px] px-4 md:px-6">
+        <h2 className="mb-6 text-xl font-semibold text-[color:var(--color-tinta)]">Aplicamos láminas en:</h2>
+
+        <div className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[color:var(--color-realce)] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[color:var(--color-realce)] to-transparent" />
+
+          <div className="flex w-max gap-4" style={{ animation: 'marquee-left 26s linear infinite' }}>
+            {visibleItems.map((it, index) => (
+              <div
+                key={`${it.key}-${index}`}
+                className="group flex w-24 shrink-0 flex-col items-center gap-2 px-2 py-3 transition-transform duration-200 hover:-translate-y-0.5 md:w-28"
+              >
+                <div className="flex h-12 items-center justify-center text-[color:var(--color-acento)] transition-transform duration-200 group-hover:scale-110">
+                  {it.render}
+                </div>
+                <span className="text-center text-[10px] font-medium text-[color:var(--color-tenue)] md:text-xs">
+                  {it.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

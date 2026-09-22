@@ -121,6 +121,28 @@ export default function LandingTaller({
       })()}`
     : null
 
+  const slides = [heroUrl, ...photoUrls]
+    .filter((url): url is string => Boolean(url))
+    .slice(0, 6)
+
+  const diaActual = new Date().getDay()
+  const horarioActual = (() => {
+    const now = new Date()
+    const opening = taller.hours.opening
+    const closing = taller.hours.closing
+    if (!opening || !closing) return null
+
+    const [horaA, minA] = opening.split(':').map(Number)
+    const [horaB, minB] = closing.split(':').map(Number)
+    const abrirMins = horaA * 60 + minA
+    const cerrarMins = horaB * 60 + minB
+    const ahoraMins = now.getHours() * 60 + now.getMinutes()
+    const abierto = ahoraMins >= abrirMins && ahoraMins <= cerrarMins
+
+    if (abierto) return 'Abierto ahora'
+    return `Cerrado · Abre a las ${opening}`
+  })()
+
   return (
     <div
       className="tipografia-taller min-h-screen bg-[color:var(--color-fondo)] text-[color:var(--color-tinta)]"
@@ -146,53 +168,54 @@ export default function LandingTaller({
             onAbrirMenu={() => setSidebarAbierto(true)}
           />
 
-          {heroUrl && <HeroTaller heroUrl={heroUrl} onAgendar={() => abrirWizard()} />}
+          {slides.length > 0 && (
+            <HeroTaller
+              slides={slides.map((url) => ({ image: url, alt: taller.name }))}
+              nombre={taller.name}
+              direccion={taller.address ?? 'Dirección no disponible'}
+              horarioTexto={horarioActual ?? 'Horario no disponible'}
+              abierto={!!horarioActual?.startsWith('Abierto')}
+              onAgendar={() => abrirWizard()}
+              onWhatsApp={() => wa && window.open(wa, '_blank', 'noopener,noreferrer')}
+            />
+          )}
 
-          {/* ── Info y descripción · servicios ──────────────────────────── */}
-          <section className="bg-[color:var(--color-realce)]">
-            <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
-              <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                      {taller.name}
-                    </h1>
-                    {subtitulo && (
-                      <p className="mt-2 text-sm text-[color:var(--color-tenue)]">{subtitulo}</p>
-                    )}
-                  </div>
+          <section id="nosotros" className="mx-auto max-w-[1280px] px-4 py-9 md:px-6 md:py-14">
+            <div className="grid gap-6 md:grid-cols-[1.1fr_1fr] md:gap-8">
+              <div className="flex flex-col gap-5">
+                <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--color-tinta)]">
+                  Nosotros:
+                </h2>
 
-                  {direccionYHorario && (
-                    <p className="text-sm text-[color:var(--color-tenue)]">{direccionYHorario}</p>
+                <p className="max-w-xl text-base leading-7 text-[color:var(--color-tenue)]">
+                  {subtitulo || 'Especialistas en laminado automotriz y arquitectónico con atención personalizada y garantía registrada.'}
+                </p>
+
+                <div className="flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
+                  {wa && (
+                    <a
+                      href={wa}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 transition-colors hover:text-[color:var(--color-acento)]"
+                    >
+                      <Whatsapp />
+                      <span>{taller.phone}</span>
+                    </a>
                   )}
 
-                  {(wa || emailContacto) && (
-                    <div className="flex flex-col gap-1.5 text-sm">
-                      {wa && (
-                        <a
-                          href={wa}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]"
-                        >
-                          <Whatsapp />
-                          {taller.phone}
-                        </a>
-                      )}
-                      {emailContacto && (
-                        <a
-                          href={`mailto:${emailContacto}`}
-                          className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]"
-                        >
-                          <Mail />
-                          {emailContacto}
-                        </a>
-                      )}
-                    </div>
+                  {emailContacto && (
+                    <a
+                      href={`mailto:${emailContacto}`}
+                      className="inline-flex items-center gap-2 transition-colors hover:text-[color:var(--color-acento)]"
+                    >
+                      <Mail />
+                      <span>{emailContacto}</span>
+                    </a>
                   )}
 
                   {redesActivas.length > 0 && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 pt-2">
                       {redesActivas.map((r) => (
                         <a
                           key={r.key}
@@ -200,7 +223,7 @@ export default function LandingTaller({
                           target="_blank"
                           rel="noreferrer"
                           aria-label={r.label}
-                          className="text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
+                          className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-2 text-[color:var(--color-tenue)] transition-colors hover:border-[color:var(--color-acento)] hover:text-[color:var(--color-acento)]"
                         >
                           {r.icono}
                         </a>
@@ -208,119 +231,211 @@ export default function LandingTaller({
                     </div>
                   )}
 
-                  <p className="text-xs text-[color:var(--color-tenue)]">
-                    Trabaja con láminas <strong className="font-semibold">Kristall Film</strong>, con
-                    garantía registrada.
-                  </p>
+                  {taller.address && (
+                    <a
+                      href={mapaLinkDestino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}` : '#ubicacion'}
+                      target={mapaLinkDestino ? '_blank' : undefined}
+                      rel={mapaLinkDestino ? 'noreferrer' : undefined}
+                      className="inline-flex items-center gap-2 text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
+                    >
+                      <Mapa />
+                      <span>{taller.address}</span>
+                    </a>
+                  )}
                 </div>
 
-                {/* 60vh y scroll interno son solo de escritorio: en celular la
-                    página entera scrollea, no hace falta un scroll anidado. */}
-                <div
-                  id="servicios"
-                  className="flex flex-col gap-3 md:max-h-[60vh] md:overflow-y-auto md:pr-2"
-                >
-                  <h2 className="text-lg font-semibold">Servicios</h2>
+                <div className="pt-2">
+                  <Modalidades taller={taller} wa={wa} email={emailContacto} />
+                </div>
+              </div>
+
+              <div
+                id="servicios"
+                className="relative overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] md:p-5"
+              >
+                <div className="absolute inset-[1px] rounded-[21px] border border-[color:var(--color-linea)]/80" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.34),transparent_34%),linear-gradient(120deg,transparent_0%,rgba(163,175,196,0.25)_50%,transparent_100%)] opacity-80" />
+                <div className="relative z-10">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <h3 className="text-lg font-semibold text-[color:var(--color-tinta)]">Servicios</h3>
+                    <span className="rounded-full border border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-[color:var(--color-tenue)]">
+                      {taller.services.length} servicios
+                    </span>
+                  </div>
+
                   {taller.services.length === 0 ? (
                     <p className="text-sm text-[color:var(--color-tenue)]">
-                      Este taller todavía no cargó sus servicios. Escribile y coordinás directamente.
+                      Este taller todavía no cargó sus servicios.
                     </p>
-                  ) : agrupar ? (
-                    <div className="flex flex-col gap-5">
-                      <Grupo titulo="Para tu vehículo" servicios={autos} onElegir={abrirWizard} />
-                      <Grupo
-                        titulo="Para tu casa u oficina"
-                        servicios={inmuebles}
-                        onElegir={abrirWizard}
-                      />
-                    </div>
                   ) : (
-                    <ListaServicios servicios={taller.services} onElegir={abrirWizard} />
+                    <div className="flex flex-col gap-2">
+                      {taller.services.slice(0, 5).map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => abrirWizard(s.id)}
+                          className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] px-3 py-3 text-left transition-colors hover:border-[color:var(--color-acento)] hover:bg-[color:var(--color-superficie)]"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-[color:var(--color-tinta)]">{s.name}</div>
+                            {s.description && (
+                              <div className="mt-1 text-xs text-[color:var(--color-tenue)]">{s.description}</div>
+                            )}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            {s.priceFrom ? (
+                              <div className="text-sm font-semibold text-[color:var(--color-acento)]">
+                                {formatPrecio(s.priceFrom, s.currency)}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-[color:var(--color-tenue)]">Consultar</div>
+                            )}
+                            <div className="text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-tenue)]">
+                              {s.category === 'ARCHITECTURAL' ? 'Visita' : 'Turno'}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* ── Dónde trabajamos ─────────────────────────────────────────── */}
-          <section id="donde-trabajamos" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
-            <h2 className="mb-4 text-lg font-semibold md:text-xl">Dónde trabajamos</h2>
+          <section id="donde-trabajamos" className="mx-auto max-w-[1280px] px-4 py-6 md:px-6 md:py-12">
             <Modalidades taller={taller} wa={wa} email={emailContacto} />
           </section>
 
-          {/* ── Trabajos realizados ──────────────────────────────────────── */}
           {photoUrls.length > 0 && (
-            <section id="trabajos" className="mx-auto max-w-6xl px-5 py-10 md:py-14">
-              <h2 className="mb-4 text-lg font-semibold md:text-xl">Trabajos realizados</h2>
+            <section id="trabajos" className="mx-auto max-w-[1280px] px-4 py-8 md:px-6 md:py-10">
+              <h2 className="mb-4 text-xl font-semibold text-[color:var(--color-tinta)]">Trabajos realizados</h2>
               <AlbumSlider fotos={photoUrls} />
             </section>
           )}
 
           <TiposCarousel taller={taller} />
 
-          {/* ── Cierre: marca + mapa ─────────────────────────────────────── */}
-          <section id="ubicacion" className="mx-auto max-w-6xl px-5 pb-16 md:pb-24">
-            <div className="grid overflow-hidden rounded-2xl md:grid-cols-2">
-              <div
-                className="relative flex min-h-[26rem] items-center px-6 py-10 sm:px-10"
-                style={
-                  (photoUrls[0] ?? heroUrl)
-                    ? {
-                        backgroundImage: `url(${photoUrls[0] ?? heroUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }
-                    : undefined
-                }
-              >
-                {(photoUrls[0] ?? heroUrl) && <div className="absolute inset-0 bg-black/55" />}
-                <h2
-                  className={`relative z-10 font-marca text-4xl font-semibold leading-tight sm:text-5xl ${
-                    photoUrls[0] ?? heroUrl ? 'text-white' : ''
-                  }`}
-                >
-                  {taller.name}
+          <section className="relative overflow-hidden bg-[color:var(--color-realce)] py-12 md:py-16">
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{
+                backgroundImage: "url('/lineas.png')",
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right center',
+                backgroundSize: 'cover',
+              }}
+            />
+            <div className="relative mx-auto max-w-[1280px] px-4 md:px-6">
+              <div className="flex flex-col items-start gap-5 md:items-center md:text-center">
+                <img
+                  src="/logo-kristall.png"
+                  alt="Kristall Film"
+                  className="h-12 w-auto rounded-md object-contain shadow-md md:h-16"
+                />
+
+                <h2 className="max-w-3xl text-2xl font-semibold tracking-[-0.04em] text-[color:var(--color-tinta)] md:text-4xl">
+                  <span className="font-semibold">{taller.name}</span> trabaja con el respaldo y la garantía de <span className="font-semibold text-[color:var(--color-acento)]">Kristall Film</span>.
                 </h2>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => abrirWizard()}
+                    className="rounded-full bg-[color:var(--color-acento)] px-5 py-3 text-sm font-semibold text-white shadow-md transition-transform hover:scale-[1.02] md:px-7 md:text-base"
+                  >
+                    Agendar turno
+                  </button>
+
+                  {wa && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(wa, '_blank', 'noopener,noreferrer')}
+                      className="rounded-full border border-[color:var(--color-linea)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-tinta)] shadow-sm transition-transform hover:scale-[1.02] md:px-7 md:text-base"
+                    >
+                      Whatsapp
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="ubicacion" className="mx-auto max-w-[1280px] px-4 pb-12 pt-8 md:px-6 md:pb-20 md:pt-12">
+            <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+              <div className="overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)]">
+                {mapaUrl ? (
+                  <iframe
+                    src={mapaUrl}
+                    title={`Dónde queda ${taller.name}`}
+                    className="block h-[330px] w-full border-0 md:h-[420px]"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="flex h-[330px] items-center justify-center p-6 text-center text-sm text-[color:var(--color-tenue)] md:h-[420px]">
+                    {taller.address ?? 'Este taller todavía no cargó su dirección.'}
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col gap-4 bg-[color:var(--color-superficie)] p-6 sm:p-10">
-                {mapaUrl ? (
-                  <div className="overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
-                    <iframe
-                      src={mapaUrl}
-                      title={`Dónde queda ${taller.name}`}
-                      className="block h-72 w-full border-0"
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-[color:var(--color-tenue)]">
-                    {taller.address ?? 'Este taller todavía no cargó su dirección.'}
-                  </p>
-                )}
-                {mapaLinkDestino && (
-                  <div className="flex flex-wrap gap-3">
+              <div className="rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-realce)] p-5 md:p-7">
+                <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-tenue)]">
+                  Ubicación
+                </div>
+                <h3 className="text-3xl font-semibold tracking-[-0.05em] text-[color:var(--color-tinta)] md:text-4xl">
+                  {taller.name}
+                </h3>
+
+                <div className="mt-4 flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
+                  {taller.address && <p>{taller.address}</p>}
+                  {taller.hours.opening && taller.hours.closing && (
+                    <p>
+                      {dias || 'Horario'} · {taller.hours.opening} a {taller.hours.closing}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {mapaLinkDestino && (
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-acento)] px-5 py-2.5 text-sm font-medium text-white"
+                      className="inline-flex w-[45%] min-w-[180px] items-center justify-center gap-2 rounded-full bg-[color:var(--color-acento)] px-4 py-3 text-sm font-semibold text-white"
                     >
                       <Mapa />
                       Cómo llegar
                     </a>
+                  )}
+
+                  {mapaLinkDestino && (
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-xl border border-[color:var(--color-linea)] px-5 py-2.5 text-sm font-medium"
+                      className="inline-flex w-[45%] min-w-[180px] items-center justify-center gap-2 rounded-full border border-[color:var(--color-linea)] bg-white px-4 py-3 text-sm font-semibold text-[color:var(--color-tinta)]"
                     >
-                      Abrir en Maps
+                      Abrir perfil de Google Maps
                     </a>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div className="mt-6 flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
+                  {wa && (
+                    <a href={wa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]">
+                      <Whatsapp />
+                      {taller.phone}
+                    </a>
+                  )}
+                  {emailContacto && (
+                    <a href={`mailto:${emailContacto}`} className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]">
+                      <Mail />
+                      {emailContacto}
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </section>

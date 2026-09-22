@@ -1,71 +1,101 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Chevron } from './iconos'
 
-/**
- * El álbum de fotos del taller: una foto grande a la vez, al ancho de la
- * columna, con las miniaturas de las demás y las flechas superpuestas sobre
- * un degradé abajo. No una fila de miniaturas chicas (eso era el carrusel de
- * antes) — acá la foto es la protagonista.
- *
- * No se dibuja nada si el taller no subió fotos: `LandingTaller.tsx` ya
- * decide eso antes de montar este componente.
- */
 export default function AlbumSlider({ fotos }: { fotos: string[] }) {
-  const [indice, setIndice] = useState(0)
-  const hayVarias = fotos.length > 1
+  const [indiceAbierto, setIndiceAbierto] = useState<number | null>(null)
 
-  function ir(i: number) {
-    setIndice((i + fotos.length) % fotos.length)
+  const filas = useMemo(() => {
+    if (fotos.length === 0) return []
+    const duplicadas = [...fotos, ...fotos]
+    return [
+      { items: duplicadas, direction: 'left' },
+      { items: duplicadas, direction: 'right' },
+    ]
+  }, [fotos])
+
+  if (fotos.length === 0) return null
+
+  const abrirFoto = (index: number) => setIndiceAbierto(index)
+  const cerrarFoto = () => setIndiceAbierto(null)
+  const irFoto = (delta: number) => {
+    if (indiceAbierto === null) return
+    setIndiceAbierto((indiceAbierto + delta + fotos.length) % fotos.length)
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-xl border border-[color:var(--color-linea)]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={fotos[indice]} alt="" className="aspect-[4/3] w-full object-cover" />
+    <>
+      <div className="space-y-4">
+        {filas.map((fila, filaIndex) => (
+          <div key={fila.direction} className="relative overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] py-2">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[color:var(--color-superficie)] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[color:var(--color-superficie)] to-transparent" />
 
-      {hayVarias && (
-        <>
-          <button
-            type="button"
-            aria-label="Foto anterior"
-            onClick={() => ir(indice - 1)}
-            className="absolute left-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
-          >
-            <Chevron className="rotate-90" />
-          </button>
-          <button
-            type="button"
-            aria-label="Foto siguiente"
-            onClick={() => ir(indice + 1)}
-            className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
-          >
-            <Chevron className="-rotate-90" />
-          </button>
-
-          {/* El degradé y las miniaturas van juntos: con una sola foto no hay
-              nada para elegir, así que tampoco hace falta oscurecerle la
-              base a la imagen. */}
-          <div className="absolute inset-x-0 bottom-0 flex gap-1.5 overflow-x-auto bg-gradient-to-t from-black/70 via-black/30 to-transparent px-2 pt-8 pb-2">
-            {fotos.map((url, i) => (
-              <button
-                key={url}
-                type="button"
-                aria-label={`Ver foto ${i + 1}`}
-                aria-current={i === indice}
-                onClick={() => setIndice(i)}
-                className={`h-10 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-opacity [scroll-snap-align:start] ${
-                  i === indice ? 'border-white opacity-100' : 'border-transparent opacity-60 hover:opacity-85'
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
-              </button>
-            ))}
+            <div
+              className="flex w-max gap-3 px-2"
+              style={{
+                animation: fila.direction === 'left' ? 'marquee-left 34s linear infinite' : 'marquee-right 34s linear infinite',
+                willChange: 'transform',
+              }}
+            >
+              {fila.items.map((url, index) => (
+                <button
+                  key={`${fila.direction}-${index}-${url}`}
+                  type="button"
+                  onClick={() => abrirFoto(index % fotos.length)}
+                  className="group relative block h-40 w-56 shrink-0 overflow-hidden rounded-xl border border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] transition-transform duration-200 hover:-translate-y-0.5 md:h-52 md:w-72"
+                  aria-label={`Abrir foto ${index % fotos.length + 1}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
+                </button>
+              ))}
+            </div>
           </div>
-        </>
+        ))}
+      </div>
+
+      {indiceAbierto !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true">
+          <div className="relative max-h-[90vh] w-full max-w-5xl">
+            <button
+              type="button"
+              onClick={cerrarFoto}
+              className="absolute right-3 top-3 z-10 flex size-10 items-center justify-center rounded-full bg-black/60 text-lg text-white backdrop-blur-sm hover:bg-black/80"
+              aria-label="Cerrar lightbox"
+            >
+              ×
+            </button>
+
+            <button
+              type="button"
+              aria-label="Foto anterior"
+              onClick={() => irFoto(-1)}
+              className="absolute left-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+            >
+              <Chevron className="rotate-90" />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Foto siguiente"
+              onClick={() => irFoto(1)}
+              className="absolute right-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+            >
+              <Chevron className="-rotate-90" />
+            </button>
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={fotos[indiceAbierto]}
+              alt={`Foto ${indiceAbierto + 1} del taller`}
+              className="max-h-[90vh] w-full rounded-2xl object-contain shadow-2xl"
+            />
+          </div>
+        </div>
       )}
-    </div>
+    </>
   )
 }

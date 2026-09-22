@@ -1,15 +1,5 @@
 import { Menu } from './iconos'
 
-/**
- * El header de la página del taller: un módulo flotante angosto (ancho de
- * contenido, no de pantalla completa) despegado del borde superior.
- *
- * Tres elementos: el logo del taller a la izquierda, el respaldo de marca
- * ("Respaldado por" + el logo de Kristall) y, después de ese logo, el botón
- * que abre el menú lateral (`SidebarTaller`) — ahí vive la navegación por
- * secciones, el botón de agendar y las redes sociales, que antes vivían
- * sueltos en el header.
- */
 export default function HeaderTaller({
   nombre,
   logoUrl,
@@ -18,16 +8,15 @@ export default function HeaderTaller({
 }: {
   nombre: string
   logoUrl: string | null
-  /** Lo elige el taller según cómo se vea su logo. Ver `logoBackground`. */
   fondo: 'CLARO' | 'OSCURO'
   onAbrirMenu: () => void
 }) {
   const oscura = fondo === 'OSCURO'
 
   return (
-    <div className="sticky top-4 z-30 mx-auto max-w-6xl px-5">
+    <div className="sticky top-2 z-30 mx-auto max-w-[1280px] px-4 md:px-6">
       <header
-        className={`flex items-center justify-between gap-4 rounded-2xl border px-5 py-4 shadow-lg backdrop-blur md:py-5 ${
+        className={`flex items-center justify-between gap-4 rounded-[18px] border px-4 py-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.12)] backdrop-blur md:py-4 ${
           oscura
             ? 'border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)]/95 text-[color:var(--color-cabecera-oscura-texto)]'
             : 'border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]/90'
@@ -36,18 +25,15 @@ export default function HeaderTaller({
         <a href="#" className="flex min-w-0 items-center gap-3">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={nombre} className="max-h-11 max-w-[10rem] object-contain" />
+            <img src={logoUrl} alt={nombre} className="max-h-10 max-w-[10rem] object-contain" />
           ) : (
             <span className="truncate text-base font-semibold sm:text-lg">{nombre}</span>
           )}
         </a>
 
         <div className="flex shrink-0 items-center gap-3">
-          {/* En celular va apilado (el texto arriba, chiquito) y no al lado:
-              al lado le comía el espacio al nombre del taller cuando no tiene
-              logo cargado. */}
           <div className="flex flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-            <span className="text-[10px] leading-none opacity-70 sm:text-sm">Respaldado por</span>
+            <span className="text-[10px] leading-none opacity-75 sm:text-[11px]">Instalador autorizado</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-stiker.png"
@@ -60,7 +46,7 @@ export default function HeaderTaller({
             type="button"
             onClick={onAbrirMenu}
             aria-label="Abrir menú"
-            className="flex shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-acento)] p-2 text-white"
+            className="flex shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-acento)] p-2.5 text-white shadow-sm transition-transform hover:scale-[1.02]"
           >
             <Menu />
           </button>
