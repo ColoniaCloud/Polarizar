@@ -117,8 +117,16 @@ export interface PublicWorkshop {
     tiktok: string | null
     google: string | null
   }
-  /** Rutas relativas al CRM, en el orden del álbum. Vacío = sin fotos aún. */
-  photos: string[]
+  /**
+   * El álbum, en el orden que eligió el taller. Vacío = sin fotos aún.
+   *
+   * **Acepta las dos formas a propósito.** El CRM pasó de mandar una lista de
+   * rutas sueltas a mandar cada foto con su descripción, pero los dos repos
+   * despliegan por separado: entre que sale esta versión y sale la del CRM,
+   * `photos` sigue llegando como `string[]` y el álbum tiene que dibujarse
+   * igual. Normalizalo siempre con `fotosDelAlbum()` en vez de leerlo crudo.
+   */
+  photos: (string | { path: string; description: string | null })[]
   /**
    * Sobre qué fondo se ve bien el logo, elegido por el taller.
    *
@@ -190,6 +198,34 @@ export function crmAssetUrl(path: string | null, demo = false): string | null {
   if (!path) return null
   const ruta = demo ? path.replace('/api/public/', '/api/public/demo/') : path
   return `${base()}${ruta}`
+}
+
+/** Una foto del álbum, ya lista para dibujar. */
+export interface FotoDelAlbum {
+  url: string
+  /**
+   * Lo que escribió el taller sobre la foto, o `null` si no escribió nada.
+   *
+   * Va al `alt` de la imagen. Cuando es `null` el `alt` queda vacío y no se
+   * rellena con algo genérico: un lector de pantalla anunciando "foto 3, foto
+   * 4, foto 5" molesta más que el silencio, y un texto inventado sobre una
+   * foto que no vimos puede describir algo que no está.
+   */
+  descripcion: string | null
+}
+
+/**
+ * Deja el álbum en una sola forma, venga como venga del CRM, y descarta las
+ * fotos cuya URL no se pudo armar.
+ */
+export function fotosDelAlbum(photos: PublicWorkshop['photos'], demo = false): FotoDelAlbum[] {
+  return photos
+    .map((foto) => (typeof foto === 'string' ? { path: foto, description: null } : foto))
+    .map((foto) => ({
+      url: crmAssetUrl(foto.path, demo),
+      descripcion: foto.description?.trim() || null,
+    }))
+    .filter((foto): foto is FotoDelAlbum => foto.url !== null)
 }
 
 // ─── Pedidos de turno ────────────────────────────────────────────────────────

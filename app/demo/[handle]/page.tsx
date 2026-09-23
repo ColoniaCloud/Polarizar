@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getWorkshopByHandle, crmAssetUrl } from '@/lib/crm'
+import { getWorkshopByHandle, crmAssetUrl, fotosDelAlbum } from '@/lib/crm'
 import LandingTaller from '@/app/[handle]/LandingTaller'
 
 /**
@@ -69,9 +69,7 @@ export default async function TallerDemoPage({ params }: Props) {
       taller={taller}
       logoUrl={crmAssetUrl(taller.logoPath, true)}
       heroUrl={crmAssetUrl(taller.heroPath, true)}
-      photoUrls={taller.photos
-        .map((p) => crmAssetUrl(p, true))
-        .filter((u): u is string => u !== null)}
+      fotos={fotosDelAlbum(taller.photos, true)}
       mapaUrl={urlDelMapa(taller)}
       mapaLinkDestino={destinoMapa(taller)}
       emailContacto={taller.email}

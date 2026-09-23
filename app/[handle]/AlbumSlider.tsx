@@ -2,8 +2,16 @@
 
 import { useMemo, useState } from 'react'
 import { Chevron } from './iconos'
+import type { FotoDelAlbum } from '@/lib/crm'
 
-export default function AlbumSlider({ fotos }: { fotos: string[] }) {
+/**
+ * El álbum de trabajos, en dos filas que se cruzan.
+ *
+ * El `alt` de cada foto es la descripción que escribió el taller desde Mi
+ * Taller. Si no escribió nada queda vacío, que para un lector de pantalla
+ * significa "esto es decorativo, seguí" — mejor que anunciar "foto 3".
+ */
+export default function AlbumSlider({ fotos }: { fotos: FotoDelAlbum[] }) {
   const [indiceAbierto, setIndiceAbierto] = useState<number | null>(null)
 
   const filas = useMemo(() => {
@@ -43,16 +51,20 @@ export default function AlbumSlider({ fotos }: { fotos: string[] }) {
                 willChange: 'transform',
               }}
             >
-              {fila.items.map((url, index) => (
+              {fila.items.map((foto, index) => (
                 <button
-                  key={`${fila.direction}-${index}-${url}`}
+                  key={`${fila.direction}-${index}-${foto.url}`}
                   type="button"
                   onClick={() => abrirFoto(index % fotos.length)}
                   className="group relative block h-40 w-56 shrink-0 overflow-hidden rounded-xl border border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] transition-transform duration-200 hover:-translate-y-0.5 md:h-52 md:w-72"
                   aria-label={`Abrir foto ${index % fotos.length + 1}`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <img
+                    src={foto.url}
+                    alt={foto.descripcion ?? ''}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
                 </button>
               ))}
@@ -93,8 +105,8 @@ export default function AlbumSlider({ fotos }: { fotos: string[] }) {
 
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={fotos[indiceAbierto]}
-              alt={`Foto ${indiceAbierto + 1} del taller`}
+              src={fotos[indiceAbierto].url}
+              alt={fotos[indiceAbierto].descripcion ?? ''}
               className="max-h-[90vh] w-full rounded-2xl object-contain shadow-2xl"
             />
           </div>

@@ -41,7 +41,7 @@ export default function Footer({
             <span className="text-base font-semibold text-white">{taller.name}</span>
           )}
           {redesActivas.length > 0 && (
-            <div className="flex items-center gap-3">
+            <div className="-ml-3 flex items-center">
               {redesActivas.map((r) => (
                 <a
                   key={r.key}
@@ -49,7 +49,7 @@ export default function Footer({
                   target="_blank"
                   rel="noreferrer"
                   aria-label={r.label}
-                  className="text-white/50 transition-colors hover:text-white"
+                  className="inline-flex size-11 items-center justify-center text-white/50 transition-colors hover:text-white"
                 >
                   {r.icono}
                 </a>
@@ -59,20 +59,23 @@ export default function Footer({
         </div>
 
         {/* Col 2: navegación de esta página */}
-        <div className="flex flex-col gap-2 text-sm">
-          <a href="#servicios" className="text-white/60 hover:text-white">
+        {/* `gap-0` + `py-3` en cada link: 44px de alto para el dedo sin
+            estirar la columna. Mismo criterio que los datos de contacto de
+            arriba. */}
+        <div className="flex flex-col gap-0 text-sm">
+          <a href="#servicios" className="py-3 text-white/60 hover:text-white">
             Servicios
           </a>
-          <a href="#donde-trabajamos" className="text-white/60 hover:text-white">
+          <a href="#donde-trabajamos" className="py-3 text-white/60 hover:text-white">
             Dónde trabajamos
           </a>
-          <a href="#ubicacion" className="text-white/60 hover:text-white">
+          <a href="#ubicacion" className="py-3 text-white/60 hover:text-white">
             Ubicación
           </a>
           {/* No hay una sección "agendar": el botón vive flotando sobre el
               hero y en el sidebar. Este es el único lugar donde no hay
               ancla posible, así que abre el wizard directo. */}
-          <button type="button" onClick={onAgendar} className="text-left text-white/60 hover:text-white">
+          <button type="button" onClick={onAgendar} className="py-3 text-left text-white/60 hover:text-white">
             Agendar un turno
           </button>
         </div>

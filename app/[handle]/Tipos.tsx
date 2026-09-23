@@ -124,9 +124,18 @@ export default function Tipos({ taller }: { taller: PublicWorkshop }) {
 /**
  * Una casilla: siempre en el mismo lugar, mostrando uno de sus tipos.
  *
- * El `key` del contenido es el paso y no el tipo: así React lo vuelve a montar
- * en cada cambio y la animación de entrada se dispara sola, sin tener que
- * coordinar una animación de salida con un temporizador aparte.
+ * **Sus tipos se montan todos una sola vez y se turnan con `display`.** La
+ * versión anterior remontaba el contenido en cada giro (`key={paso}`), y como
+ * los archivos de `public/` se sirven con `cache-control: max-age=0`, cada
+ * `<img>` nuevo volvía a pedir el ícono a la red: medido en producción, el
+ * mismo SVG de 5,8KB bajó a los 1s, 11s, 20s, 30s y 40s, y así para siempre.
+ * En un teléfono con datos —que es por donde llega casi todo el tráfico— una
+ * pestaña abierta cinco minutos se bajaba más de un mega de los mismos seis
+ * íconos. Manteniéndolos montados, cada ícono se pide una vez y listo.
+ *
+ * La animación igual se dispara en cada cambio: un elemento que pasa de
+ * `display: none` a visible reinicia sus animaciones CSS solo, sin necesidad
+ * de remontarlo.
  *
  * En el paso 0 no hay animación a propósito — es el primer dibujado de la
  * página, no un giro, y arrancar con las seis casillas girando a la vez es
@@ -142,11 +151,24 @@ function Casilla({ tipos, ritmo }: { tipos: Tipo[]; ritmo: number }) {
     return () => clearInterval(id)
   }, [tipos.length, ritmo])
 
+  const activo = paso % tipos.length
+
   return (
     <div className="[perspective:600px]">
-      <div key={paso} className={paso > 0 ? 'animate-[giro-tipo_0.55s_ease-out]' : undefined}>
-        <Casillero tipo={tipos[paso % tipos.length]} />
-      </div>
+      {tipos.map((tipo, index) => (
+        <div
+          key={tipo.key}
+          className={
+            index === activo
+              ? paso > 0
+                ? 'animate-[giro-tipo_0.55s_ease-out]'
+                : undefined
+              : 'hidden'
+          }
+        >
+          <Casillero tipo={tipo} />
+        </div>
+      ))}
     </div>
   )
 }

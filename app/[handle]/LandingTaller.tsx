@@ -12,7 +12,7 @@ import BorderBeam from './BorderBeam'
 import Footer from './Footer'
 import WhatsAppFlotante from './WhatsAppFlotante'
 import { Mapa, Whatsapp, Mail, Instagram, Facebook, Tiktok, Google } from './iconos'
-import type { PublicWorkshop, PublicService } from '@/lib/crm'
+import type { PublicWorkshop, PublicService, FotoDelAlbum } from '@/lib/crm'
 import { formatDias, formatPrecio, formatDuracion } from '@/lib/formato'
 import { variablesDelTema } from '@/lib/tema'
 
@@ -53,7 +53,7 @@ export default function LandingTaller({
   taller,
   logoUrl,
   heroUrl,
-  photoUrls,
+  fotos,
   mapaUrl,
   mapaLinkDestino,
   emailContacto,
@@ -65,8 +65,8 @@ export default function LandingTaller({
   logoUrl: string | null
   /** `null` = todavía no subió foto de portada: se usa el layout de siempre. */
   heroUrl: string | null
-  /** URLs ya resueltas del álbum, en el orden elegido por el taller. */
-  photoUrls: string[]
+  /** El álbum ya normalizado (URL + descripción), en el orden del taller. */
+  fotos: FotoDelAlbum[]
   mapaUrl: string | null
   /** Para el botón "Cómo llegar": coordenadas si hay, si no la dirección en texto. */
   mapaLinkDestino: string | null
@@ -120,9 +120,19 @@ export default function LandingTaller({
       })()}`
     : null
 
-  const slides = [heroUrl, ...photoUrls]
-    .filter((url): url is string => Boolean(url))
-    .slice(0, 6)
+  // La portada no lleva `alt`: el nombre del taller está escrito encima de
+  // ella, en el h1, así que describirla otra vez es repetir. Las del álbum sí,
+  // con lo que haya escrito el taller.
+  const slides = [
+    ...(heroUrl ? [{ image: heroUrl, alt: '' }] : []),
+    ...fotos.map((f) => ({ image: f.url, alt: f.descripcion ?? '' })),
+  ].slice(0, 6)
+
+  // Arranca en `true` cuando hay hero: al abrir la página la cabecera ya está
+  // sobre la foto, y esperar a que el primer scroll lo confirme se vería como
+  // un parpadeo del fondo en el primer cuadro. Sin foto de portada no hay nada
+  // detrás de la cabecera, así que va opaca desde el principio.
+  const [cabeceraSobreFoto, setCabeceraSobreFoto] = useState(slides.length > 0)
 
   // El cartel de "Abierto ahora" del hero.
   //
@@ -181,18 +191,20 @@ export default function LandingTaller({
             nombre={taller.name}
             logoUrl={logoUrl}
             fondo={taller.logoBackground}
+            transparente={cabeceraSobreFoto}
             onAbrirMenu={() => setSidebarAbierto(true)}
           />
 
           {slides.length > 0 && (
             <HeroTaller
-              slides={slides.map((url) => ({ image: url, alt: taller.name }))}
+              slides={slides}
               nombre={taller.name}
               direccion={taller.address}
               horarioTexto={diasYHorario}
               abierto={abiertoAhora}
               onAgendar={() => abrirWizard()}
               onWhatsApp={wa ? () => window.open(wa, '_blank', 'noopener,noreferrer') : undefined}
+              onSobreFoto={setCabeceraSobreFoto}
             />
           )}
 
@@ -207,13 +219,17 @@ export default function LandingTaller({
                   {subtitulo || 'Especialistas en laminado automotriz y arquitectónico con atención personalizada y garantía registrada.'}
                 </p>
 
-                <div className="flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
+                {/* `gap-0` + `py-3`: cada link mide 44px de alto para el dedo
+                    sin que la lista quede más aireada que antes. El teléfono y
+                    el mail se tocan para llamar o escribir — con 20px de alto
+                    se fallaba seguido, y son la vía de contacto directa. */}
+                <div className="flex flex-col gap-0 text-sm text-[color:var(--color-tenue)]">
                   {wa && (
                     <a
                       href={wa}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 transition-colors hover:text-[color:var(--color-acento)]"
+                      className="inline-flex items-center gap-2 py-3 transition-colors hover:text-[color:var(--color-acento)]"
                     >
                       <Whatsapp />
                       <span>{taller.phone}</span>
@@ -223,7 +239,7 @@ export default function LandingTaller({
                   {emailContacto && (
                     <a
                       href={`mailto:${emailContacto}`}
-                      className="inline-flex items-center gap-2 transition-colors hover:text-[color:var(--color-acento)]"
+                      className="inline-flex items-center gap-2 py-3 transition-colors hover:text-[color:var(--color-acento)]"
                     >
                       <Mail />
                       <span>{emailContacto}</span>
@@ -239,7 +255,7 @@ export default function LandingTaller({
                           target="_blank"
                           rel="noreferrer"
                           aria-label={r.label}
-                          className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-2 text-[color:var(--color-tenue)] transition-colors hover:border-[color:var(--color-acento)] hover:text-[color:var(--color-acento)]"
+                          className="inline-flex size-11 items-center justify-center rounded-full border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] text-[color:var(--color-tenue)] transition-colors hover:border-[color:var(--color-acento)] hover:text-[color:var(--color-acento)]"
                         >
                           {r.icono}
                         </a>
@@ -252,7 +268,7 @@ export default function LandingTaller({
                       href={mapaLinkDestino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}` : '#ubicacion'}
                       target={mapaLinkDestino ? '_blank' : undefined}
                       rel={mapaLinkDestino ? 'noreferrer' : undefined}
-                      className="inline-flex items-center gap-2 text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
+                      className="inline-flex items-center gap-2 py-3 text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
                     >
                       <Mapa />
                       <span>{taller.address}</span>
@@ -346,10 +362,10 @@ export default function LandingTaller({
             </div>
           </section>
 
-          {photoUrls.length > 0 && (
+          {fotos.length > 0 && (
             <section id="trabajos" className="mx-auto max-w-[1280px] scroll-mt-28 px-4 py-8 md:px-6 md:py-10">
               <h2 className="mb-4 text-xl font-semibold text-[color:var(--color-tinta)]">Trabajos realizados</h2>
-              <AlbumSlider fotos={photoUrls} />
+              <AlbumSlider fotos={fotos} />
             </section>
           )}
 
@@ -466,15 +482,15 @@ export default function LandingTaller({
                   )}
                 </div>
 
-                <div className="mt-6 flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
+                <div className="mt-4 flex flex-col gap-0 text-sm text-[color:var(--color-tenue)]">
                   {wa && (
-                    <a href={wa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]">
+                    <a href={wa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 py-3 hover:text-[color:var(--color-acento)]">
                       <Whatsapp />
                       {taller.phone}
                     </a>
                   )}
                   {emailContacto && (
-                    <a href={`mailto:${emailContacto}`} className="inline-flex items-center gap-2 hover:text-[color:var(--color-acento)]">
+                    <a href={`mailto:${emailContacto}`} className="inline-flex items-center gap-2 py-3 hover:text-[color:var(--color-acento)]">
                       <Mail />
                       {emailContacto}
                     </a>
@@ -492,7 +508,7 @@ export default function LandingTaller({
           abierto={sidebarAbierto}
           onCerrar={() => setSidebarAbierto(false)}
           taller={taller}
-          tieneAlbum={photoUrls.length > 0}
+          tieneAlbum={fotos.length > 0}
           onAgendar={() => abrirWizard()}
         />
       </div>

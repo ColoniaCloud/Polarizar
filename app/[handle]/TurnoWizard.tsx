@@ -6,6 +6,7 @@ import SelectorVisita from './SelectorVisita'
 import SelectVehiculo from './SelectVehiculo'
 import SelectInmueble from './SelectInmueble'
 import Gracias from './Gracias'
+import { useScrollBloqueado } from './bloquearScroll'
 import { Camara, X, Chevron } from './iconos'
 import { OBJETIVOS } from '@/lib/inmuebles'
 import type { PublicWorkshop, PublicService, RubroServicio } from '@/lib/crm'
@@ -100,6 +101,22 @@ export default function TurnoWizard({
   const esArquitectura = rubro === 'ARCHITECTURAL'
   const serviciosDelRubro = esArquitectura ? inmuebles : autos
 
+  // El precio y la duración del servicio elegido, para mostrarlos debajo del
+  // select en vez de adentro de la opción. En arquitectura no se muestra la
+  // duración: lo que se reserva es una visita para medir, y el tiempo del
+  // trabajo todavía no se sabe.
+  const servicioElegido = serviciosDelRubro.find((s) => s.id === serviceId)
+  const detalleDelServicio = servicioElegido
+    ? [
+        formatPrecio(servicioElegido.priceFrom, servicioElegido.currency)
+          ? `Desde ${formatPrecio(servicioElegido.priceFrom, servicioElegido.currency)}`
+          : 'Precio a consultar',
+        ...(servicioElegido.category === 'ARCHITECTURAL'
+          ? []
+          : [formatDuracion(servicioElegido.durationMinutes)]),
+      ].join(' · ')
+    : null
+
   // Cada vez que se abre de nuevo, arranca limpio — si quedó en el paso 4 de
   // un pedido anterior, la próxima persona no tiene que verlo.
   useEffect(() => {
@@ -118,6 +135,8 @@ export default function TurnoWizard({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [abierto, onCerrar])
+
+  useScrollBloqueado(abierto)
 
   if (!abierto) return null
 
@@ -257,7 +276,7 @@ export default function TurnoWizard({
   const tituloBien = esArquitectura ? '¿Qué tipo de inmueble es?' : 'Tipo de vehículo'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
       {/* El backdrop cierra al tocarlo. El panel de adentro corta el click para
           que tocar el formulario no cierre el modal. */}
       <button
@@ -356,25 +375,27 @@ export default function TurnoWizard({
                   {serviciosDelRubro.length > 0 && (
                     <label className="flex flex-col gap-1.5">
                       <span className="text-sm font-medium">¿Qué necesitás?</span>
+                      {/* En la opción va solo el nombre. Con el precio y la
+                          duración adentro, el texto medía 384px en un select de
+                          335px y se cortaba en celular — justo el precio, que
+                          es lo que se está decidiendo. Abajo entran enteros y
+                          además se leen sin abrir la lista. */}
                       <select
                         value={serviceId}
                         onChange={(e) => setServiceId(e.target.value)}
                         className={campo}
                       >
-                        {serviciosDelRubro.map((s: PublicService) => {
-                          const precio = formatPrecio(s.priceFrom, s.currency)
-                          const partes = [
-                            s.name,
-                            precio ? `desde ${precio}` : 'a consultar',
-                            ...(s.category === 'ARCHITECTURAL' ? [] : [formatDuracion(s.durationMinutes)]),
-                          ]
-                          return (
-                            <option key={s.id} value={s.id}>
-                              {partes.join(' · ')}
-                            </option>
-                          )
-                        })}
+                        {serviciosDelRubro.map((s: PublicService) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
                       </select>
+                      {detalleDelServicio && (
+                        <span className="text-xs text-[color:var(--color-tenue)]">
+                          {detalleDelServicio}
+                        </span>
+                      )}
                     </label>
                   )}
                 </div>

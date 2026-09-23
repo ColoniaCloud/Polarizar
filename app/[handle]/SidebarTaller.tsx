@@ -89,7 +89,7 @@ export default function SidebarTaller({
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar menú"
-            className="rounded-lg p-1.5 text-[color:var(--color-tenue)] hover:bg-[color:var(--color-superficie)]"
+            className="flex size-11 items-center justify-center rounded-lg text-[color:var(--color-tenue)] hover:bg-[color:var(--color-superficie)]"
           >
             <X />
           </button>
@@ -101,7 +101,7 @@ export default function SidebarTaller({
               key={s.href}
               href={s.href}
               onClick={onCerrar}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-[color:var(--color-superficie)]"
+              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium hover:bg-[color:var(--color-superficie)]"
             >
               {s.label}
             </a>
@@ -120,7 +120,7 @@ export default function SidebarTaller({
         </button>
 
         {redesActivas.length > 0 && (
-          <div className="mt-auto flex items-center gap-4 pt-6">
+          <div className="-ml-3 mt-auto flex items-center pt-6">
             {redesActivas.map((r) => (
               <a
                 key={r.key}
@@ -128,7 +128,7 @@ export default function SidebarTaller({
                 target="_blank"
                 rel="noreferrer"
                 aria-label={r.label}
-                className="text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-tinta)]"
+                className="inline-flex size-11 items-center justify-center text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-tinta)]"
               >
                 {r.icono}
               </a>

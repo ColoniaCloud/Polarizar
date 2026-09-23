@@ -8,6 +8,12 @@ import { Menu } from './iconos'
  * después de ese logo, el botón que abre el menú lateral (`SidebarTaller`) —
  * ahí vive la navegación por secciones, el botón de agendar y las redes.
  *
+ * Mientras está sobre la foto del hero (`transparente`) se dibuja sin fondo,
+ * sin borde y sin sombra, con el texto en blanco: ahí el contraste lo pone el
+ * degradé del hero, que arriba es el más cerrado. Pasada la mitad del hero
+ * aparece su fondo, y el cambio va con `transition` para que entre en vez de
+ * saltar.
+ *
  * **El alto es fijo, y eso es a propósito**: es `--alto-cabecera`
  * (`globals.css`), el mismo valor que `HeroTaller` se sube con un margen
  * negativo para que la foto llegue al borde de arriba de la pantalla y esta
@@ -18,12 +24,15 @@ export default function HeaderTaller({
   nombre,
   logoUrl,
   fondo,
+  transparente = false,
   onAbrirMenu,
 }: {
   nombre: string
   logoUrl: string | null
   /** Lo elige el taller según cómo se vea su logo. Ver `logoBackground`. */
   fondo: 'CLARO' | 'OSCURO'
+  /** `true` mientras la cabecera va montada sobre la foto del hero. */
+  transparente?: boolean
   onAbrirMenu: () => void
 }) {
   const oscura = fondo === 'OSCURO'
@@ -34,10 +43,12 @@ export default function HeaderTaller({
           detrás durante el scroll quedaba parcialmente legible a través del
           header — se veía roto, no elegante. */}
       <header
-        className={`flex h-full items-center justify-between gap-4 rounded-[18px] border px-4 shadow-[0_12px_30px_rgba(15,23,42,0.12)] ${
-          oscura
-            ? 'border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)] text-[color:var(--color-cabecera-oscura-texto)]'
-            : 'border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]'
+        className={`flex h-full items-center justify-between gap-4 rounded-[18px] border px-4 transition-colors duration-300 ${
+          transparente
+            ? 'border-transparent bg-transparent text-white'
+            : oscura
+              ? 'border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)] text-[color:var(--color-cabecera-oscura-texto)] shadow-[0_12px_30px_rgba(15,23,42,0.12)]'
+              : 'border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] shadow-[0_12px_30px_rgba(15,23,42,0.12)]'
         }`}
       >
         <a href="#" className="flex min-w-0 items-center gap-3">
@@ -64,7 +75,7 @@ export default function HeaderTaller({
             type="button"
             onClick={onAbrirMenu}
             aria-label="Abrir menú"
-            className="flex shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-acento)] p-2.5 text-white shadow-sm transition-transform hover:scale-[1.02]"
+            className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-acento)] text-white shadow-sm transition-transform hover:scale-[1.02]"
           >
             <Menu />
           </button>

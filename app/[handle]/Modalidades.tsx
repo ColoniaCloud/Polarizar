@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { X } from './iconos'
+import { useScrollBloqueado } from './bloquearScroll'
 import type { PublicWorkshop } from '@/lib/crm'
 
 /** Llave: "servicio en el taller". */
@@ -84,6 +85,8 @@ export default function Modalidades({
   email: string | null
 }) {
   const [abierta, setAbierta] = useState<Modalidad | null>(null)
+
+  useScrollBloqueado(abierta !== null)
 
   // Cierra con Escape — mismo criterio que el wizard de turno.
   useEffect(() => {
@@ -185,7 +188,7 @@ export default function Modalidades({
       </div>
 
       {abierta && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           {/* El backdrop cierra al tocarlo. El panel de adentro corta el click
               para que leer el texto no cierre el modal. */}
           <button
