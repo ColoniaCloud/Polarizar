@@ -6,9 +6,9 @@ import HeroTaller from './HeroTaller'
 import SidebarTaller from './SidebarTaller'
 import TurnoWizard from './TurnoWizard'
 import Modalidades from './Modalidades'
-import Tipos from './Tipos'
 import AlbumSlider from './AlbumSlider'
 import BorderBeam from './BorderBeam'
+import EntradaDifusa from './EntradaDifusa'
 import Footer from './Footer'
 import WhatsAppFlotante from './WhatsAppFlotante'
 import { Mapa, Whatsapp, Mail, Instagram, Facebook, Tiktok, Google } from './iconos'
@@ -291,6 +291,17 @@ export default function LandingTaller({
                     </a>
                   )}
 
+                  {taller.address && (
+                    <a
+                      href={mapaLinkDestino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}` : '#ubicacion'}
+                      target={mapaLinkDestino ? '_blank' : undefined}
+                      rel={mapaLinkDestino ? 'noreferrer' : undefined}
+                      className="inline-flex items-center gap-2 py-3 text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
+                    >
+                      <Mapa />
+                      <span>{taller.address}</span>
+                    </a>
+                  )}
                   {redesActivas.length > 0 && (
                     <div className="flex items-center gap-3 pt-2">
                       {redesActivas.map((r) => (
@@ -306,18 +317,6 @@ export default function LandingTaller({
                         </a>
                       ))}
                     </div>
-                  )}
-
-                  {taller.address && (
-                    <a
-                      href={mapaLinkDestino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapaLinkDestino)}` : '#ubicacion'}
-                      target={mapaLinkDestino ? '_blank' : undefined}
-                      rel={mapaLinkDestino ? 'noreferrer' : undefined}
-                      className="inline-flex items-center gap-2 py-3 text-[color:var(--color-tenue)] transition-colors hover:text-[color:var(--color-acento)]"
-                    >
-                      <Mapa />
-                      <span>{taller.address}</span>
-                    </a>
                   )}
                 </div>
 
@@ -346,7 +345,12 @@ export default function LandingTaller({
                     estaba dibujado dos veces, acá y otra vez a ancho completo
                     más abajo, diciendo exactamente lo mismo. */}
                 <div id="donde-trabajamos" className="scroll-mt-28 pt-2">
-                  <Modalidades taller={taller} wa={wa} email={emailContacto} />
+                  <Modalidades
+                    taller={taller}
+                    wa={wa}
+                    email={emailContacto}
+                    onAgendar={() => abrirWizard()}
+                  />
                 </div>
               </div>
 
@@ -434,34 +438,46 @@ export default function LandingTaller({
             </section>
           )}
 
-          <Tipos taller={taller} />
-
-          <section className="relative overflow-hidden bg-[color:var(--color-realce)] py-12 md:py-16">
+          {/* Un gris oscuro fijo y no un token del tema: el fondo tiene que
+              dejar ver el negro de las líneas, y los cuatro presets de la
+              página van de blanco a negro — con el preset NEGRO las líneas
+              desaparecerían y con BLANCO no habría contraste. Esta banda es de
+              Kristall, no del taller, así que que se vea igual en las cuatro
+              paletas también es lo correcto. */}
+          <section className="relative overflow-hidden bg-[#3a3f46] py-16 md:py-24">
             <div
-              className="absolute inset-0 opacity-50"
+              className="absolute inset-0 opacity-90"
               style={{
-                backgroundImage: "url('/lineas.png')",
+                backgroundImage: "url('/lineas.svg')",
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'right top',
                 backgroundSize: 'cover',
               }}
             />
             <div className="relative mx-auto max-w-[1280px] px-4 md:px-6">
-              <div className="flex flex-col items-start gap-5 md:items-center md:text-center">
-                <img
-                  src="/logo-kristall.png"
-                  alt="Kristall Film"
-                  className="h-9 w-auto rounded-md object-contain shadow-md md:h-12"
-                />
+              {/* Todo alineado a la izquierda, y cada parte entra con su propio
+                  tiempo: con retrasos iguales la sección aparece de golpe como
+                  un bloque, y con estos se arma sola de arriba hacia abajo. */}
+              <div className="flex flex-col items-start gap-5">
+                <EntradaDifusa duracion={650}>
+                  <img
+                    src="/logo-kristall.png"
+                    alt="Kristall Film"
+                    className="h-9 w-auto rounded-md object-contain shadow-md md:h-12"
+                  />
+                </EntradaDifusa>
 
                 {/* Las negritas cargan los dos nombres propios y el resto va en
                     peso regular. Todo en tinta, también "Kristall Film": acá el
                     acento es el color que eligió el taller, y pintar con él la
                     marca de otro es prestarle un color que no le corresponde. */}
-                <h2 className="max-w-3xl text-2xl font-normal tracking-[-0.04em] text-[color:var(--color-tinta)] md:text-4xl">
-                  <strong className="font-bold">{taller.name}</strong> trabaja con el respaldo y la
-                  garantía de los productos <strong className="font-bold">Kristall Film</strong>.
-                </h2>
+                <EntradaDifusa retraso={140} duracion={800}>
+                  <h2 className="max-w-3xl text-2xl font-normal tracking-[-0.04em] text-[#eef1f4] md:text-4xl">
+                    <strong className="font-bold text-white">{taller.name}</strong> trabaja con el
+                    respaldo y la garantía de los productos{' '}
+                    <strong className="font-bold text-white">Kristall Film</strong>.
+                  </h2>
+                </EntradaDifusa>
 
                 {/* Hasta acá "garantía" era una palabra suelta, y la garantía
                     es la objeción más cara del rubro: cualquiera dice que la
@@ -472,7 +488,8 @@ export default function LandingTaller({
                     que se termine instalando y sale en el certificado de cada
                     instalación. Un número inventado acá sería una promesa que
                     el taller después tiene que bancar. */}
-                <ul className="flex max-w-3xl flex-col gap-2 text-left text-sm text-[color:var(--color-tenue)] md:items-center md:text-center md:text-base">
+                <EntradaDifusa retraso={300} duracion={850}>
+                  <ul className="flex max-w-3xl flex-col gap-2 text-left text-sm text-white/75 md:text-base">
                   <li>Cada trabajo se registra con su propia garantía, a nombre tuyo.</li>
                   <li>
                     Te llega un certificado por mail con los datos de la instalación, el producto y
@@ -484,15 +501,16 @@ export default function LandingTaller({
                       href="https://kristallfilm.com/garantia"
                       target="_blank"
                       rel="noreferrer"
-                      className="font-medium text-[color:var(--color-acento)] underline underline-offset-4"
+                      className="font-medium text-white underline underline-offset-4"
                     >
                       kristallfilm.com/garantia
                     </a>
                     .
                   </li>
-                </ul>
+                  </ul>
+                </EntradaDifusa>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <EntradaDifusa retraso={470} duracion={700} className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     onClick={() => abrirWizard()}
@@ -510,7 +528,7 @@ export default function LandingTaller({
                       Whatsapp
                     </button>
                   )}
-                </div>
+                </EntradaDifusa>
               </div>
             </div>
           </section>

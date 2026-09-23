@@ -26,7 +26,6 @@ const RUTAS_ESTATICAS = [
   '/iconos/:ruta*',
   '/fonts/:ruta*',
   '/cat/:ruta*',
-  '/lineas.png',
   '/lineas.svg',
   '/logo-kristall.png',
   '/logo-stiker.png',

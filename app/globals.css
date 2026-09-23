@@ -300,17 +300,19 @@ body {
     }
   }
 
-  /* El giro de las casillas de "Aplicamos láminas en:". Entra nada más el
-   * tipo nuevo: al montarse tapa al anterior, así que no hace falta animar
-   * también la salida. */
-  @keyframes giro-tipo {
+  /* Entrada de la sección de Kristall: aparece desenfocada y se enfoca. El
+   * `blur` es la parte que hace el efecto; el desplazamiento es chico a
+   * propósito, porque lo que tiene que leerse como movimiento es el foco. */
+  @keyframes entrada-difusa {
     from {
       opacity: 0;
-      transform: rotateX(-75deg) translateY(6px);
+      filter: blur(14px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
-      transform: rotateX(0) translateY(0);
+      filter: blur(0);
+      transform: translateY(0);
     }
   }
 

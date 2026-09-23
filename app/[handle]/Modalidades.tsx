@@ -45,6 +45,8 @@ interface Modalidad {
   activa: boolean
   /** Solo donde hace falta coordinar antes — ver el comentario de abajo. */
   accion?: { href: string; texto: string }
+  /** Texto del botón que abre el wizard, donde se puede reservar directo. */
+  agendar?: string
 }
 
 /**
@@ -78,11 +80,14 @@ export default function Modalidades({
   taller,
   wa,
   email,
+  onAgendar,
 }: {
   taller: PublicWorkshop
   /** Link de WhatsApp ya armado, o `null` si no cargó teléfono. */
   wa: string | null
   email: string | null
+  /** Abre el mismo wizard que el botón grande del hero. */
+  onAgendar: () => void
 }) {
   const [abierta, setAbierta] = useState<Modalidad | null>(null)
 
@@ -113,6 +118,7 @@ export default function Modalidades({
           'Cuánto tarda cada trabajo está en la lista de servicios, al lado del precio.',
         ],
         activa: Boolean(taller.modalidades.taller),
+        agendar: 'Reservar turno',
       },
       {
         clave: 'domicilio',
@@ -141,7 +147,13 @@ export default function Modalidades({
     )
   }
 
-  if (taller.rubros.arquitectura) {
+  // **Solo cuando el taller no hace autos.** Si hace las dos cosas, esta
+  // tarjeta queda al lado de "A domicilio" diciendo casi lo mismo — las dos
+  // son "vamos hasta donde está el trabajo" — y dos chips que se pisan
+  // obligan a leer los dos para descubrir que daban la misma respuesta. En un
+  // taller dedicado solo a arquitectura, en cambio, es la única que hay y
+  // sacarla dejaría la sección vacía.
+  if (taller.rubros.arquitectura && !taller.rubros.automotriz) {
     // Siempre activa: no depende de un check del instalador porque es como
     // funciona el rubro. Nadie lleva su ventana al taller, así que el trabajo
     // en inmuebles empieza sí o sí con alguien yendo a mirar y a medir.
@@ -155,6 +167,12 @@ export default function Modalidades({
         'Con esa visita sale el presupuesto, y recién ahí se agenda la colocación.',
       ],
       activa: true,
+      // "Pedir una visita" y no "Reservar turno": es el mismo wizard, pero en
+      // arquitectura lo que se agenda es que alguien vaya a medir, y así lo
+      // llama el resto de la página — las tarjetas de servicio y el título del
+      // propio wizard. Una acción que cambia de nombre a mitad de camino se
+      // lee como dos acciones distintas.
+      agendar: 'Pedir una visita',
     })
   }
 
@@ -235,15 +253,28 @@ export default function Modalidades({
               </div>
 
               {abierta.activa ? (
-                abierta.accion && (
-                  <a
-                    href={abierta.accion.href}
-                    target={abierta.accion.href.startsWith('http') ? '_blank' : undefined}
-                    rel="noreferrer"
-                    className="mt-5 block rounded-xl bg-[color:var(--color-acento)] px-4 py-3 text-center text-sm font-semibold text-white"
+                abierta.agendar ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAbierta(null)
+                      onAgendar()
+                    }}
+                    className="mt-5 block w-full rounded-xl bg-[color:var(--color-acento)] px-4 py-3 text-center text-sm font-semibold text-white"
                   >
-                    {abierta.accion.texto}
-                  </a>
+                    {abierta.agendar}
+                  </button>
+                ) : (
+                  abierta.accion && (
+                    <a
+                      href={abierta.accion.href}
+                      target={abierta.accion.href.startsWith('http') ? '_blank' : undefined}
+                      rel="noreferrer"
+                      className="mt-5 block rounded-xl bg-[color:var(--color-acento)] px-4 py-3 text-center text-sm font-semibold text-white"
+                    >
+                      {abierta.accion.texto}
+                    </a>
+                  )
                 )
               ) : (
                 <p className="mt-5 rounded-xl border border-dashed border-[color:var(--color-linea)] px-4 py-3 text-center text-sm text-[color:var(--color-tenue)]">
