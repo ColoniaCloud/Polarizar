@@ -108,6 +108,12 @@ export default function LandingTaller({
 
   const redesActivas = REDES.filter((r) => taller.social[r.key])
 
+  // Ver el comentario en la sección de "Nosotros" para el porqué del umbral.
+  const respaldo = {
+    desde: taller.instaladorDesde ?? null,
+    garantias: (taller.garantiasRegistradas ?? 0) >= 10 ? taller.garantiasRegistradas : null,
+  }
+
   function abrirWizard(serviceId?: string) {
     setServicioParaWizard(serviceId)
     setWizardAbierto(true)
@@ -276,6 +282,26 @@ export default function LandingTaller({
                   )}
                 </div>
 
+                {/* Prueba social, con lo único que podemos afirmar de verdad:
+                    desde cuándo está en la red y cuántas garantías se
+                    activaron con su lámina. Nada de "cientos de clientes".
+
+                    El umbral de 10 no es capricho: "2 garantías registradas"
+                    convence menos que no decir nada, y un taller nuevo no
+                    tiene por qué exhibir que recién empieza. Debajo de eso
+                    queda solo la antigüedad, que no depende del volumen. */}
+                {(respaldo.desde || respaldo.garantias) && (
+                  <p className="text-sm text-[color:var(--color-tinta)]">
+                    {[
+                      respaldo.desde && `Instalador autorizado Kristall desde ${respaldo.desde}`,
+                      respaldo.garantias &&
+                        `${respaldo.garantias} garantías registradas con su lámina`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+
                 {/* Lleva el ancla `#donde-trabajamos` — la del menú lateral y
                     la del footer — porque es el único lugar donde vive: antes
                     estaba dibujado dos veces, acá y otra vez a ancho completo
@@ -296,7 +322,7 @@ export default function LandingTaller({
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.34),transparent_34%),linear-gradient(120deg,transparent_0%,rgba(163,175,196,0.25)_50%,transparent_100%)] opacity-80" />
                 <div className="relative z-10">
                   <div className="mb-4 flex items-center justify-between gap-4">
-                    <h3 className="text-lg font-semibold text-[color:var(--color-tinta)]">Servicios</h3>
+                    <h2 className="text-lg font-semibold text-[color:var(--color-tinta)]">Servicios</h2>
                     <span className="rounded-full border border-[color:var(--color-linea)] bg-[color:var(--color-fondo)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-[color:var(--color-tenue)]">
                       {taller.services.length} servicios
                     </span>
@@ -398,6 +424,35 @@ export default function LandingTaller({
                   garantía de los productos <strong className="font-bold">Kristall Film</strong>.
                 </h2>
 
+                {/* Hasta acá "garantía" era una palabra suelta, y la garantía
+                    es la objeción más cara del rubro: cualquiera dice que la
+                    tiene. Estos tres renglones cuentan cómo funciona y dónde se
+                    comprueba, que es lo único que la vuelve creíble.
+
+                    Ninguno promete un plazo: la cobertura la fija el producto
+                    que se termine instalando y sale en el certificado de cada
+                    instalación. Un número inventado acá sería una promesa que
+                    el taller después tiene que bancar. */}
+                <ul className="flex max-w-3xl flex-col gap-2 text-left text-sm text-[color:var(--color-tenue)] md:items-center md:text-center md:text-base">
+                  <li>Cada trabajo se registra con su propia garantía, a nombre tuyo.</li>
+                  <li>
+                    Te llega un certificado por mail con los datos de la instalación, el producto y
+                    la cobertura.
+                  </li>
+                  <li>
+                    La podés consultar cuando quieras en{' '}
+                    <a
+                      href="https://kristallfilm.com/garantia"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-[color:var(--color-acento)] underline underline-offset-4"
+                    >
+                      kristallfilm.com/garantia
+                    </a>
+                    .
+                  </li>
+                </ul>
+
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
@@ -441,12 +496,14 @@ export default function LandingTaller({
               </div>
 
               <div className="rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-realce)] p-5 md:p-7">
-                <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-tenue)]">
-                  Ubicación
-                </div>
-                <h3 className="text-3xl font-semibold tracking-[-0.05em] text-[color:var(--color-tinta)] md:text-4xl">
+                {/* Sin rótulo "UBICACIÓN" arriba: al lado hay un mapa y abajo
+                    una dirección, así que la etiqueta no agregaba información
+                    que no estuviera ya a la vista — y en 10px mayúsculas era,
+                    además, el rengloncito que aparece en cualquier página
+                    hecha con plantilla. */}
+                <h2 className="text-3xl font-semibold tracking-[-0.05em] text-[color:var(--color-tinta)] md:text-4xl">
                   {taller.name}
-                </h3>
+                </h2>
 
                 <div className="mt-4 flex flex-col gap-2 text-sm text-[color:var(--color-tenue)]">
                   {taller.address && <p>{taller.address}</p>}

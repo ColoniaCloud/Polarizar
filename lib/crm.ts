@@ -148,6 +148,16 @@ export interface PublicWorkshop {
    * Al menos uno viene en `true`: el CRM no deja guardar los dos apagados.
    */
   rubros: { automotriz: boolean; arquitectura: boolean }
+  /**
+   * Año en que entró a la red de instaladores, o `null` si no se sabe.
+   *
+   * Opcionales los dos porque el CRM los empezó a mandar después: entre que
+   * despliega esta versión y despliega la del CRM no vienen, y la página
+   * tiene que dibujarse igual sin ellos.
+   */
+  instaladorDesde?: number | null
+  /** Garantías activadas con lámina comprada por este taller. */
+  garantiasRegistradas?: number
   address: string | null
   lat: number | null
   lng: number | null
