@@ -105,7 +105,14 @@ export default function EntradaDifusa({
       style={
         estado === 'animando'
           ? {
-              animation: `entrada-difusa ${duracion}ms cubic-bezier(0.22, 1, 0.36, 1) ${retraso}ms forwards`,
+              // `both` y no `forwards`: con `forwards` el elemento se queda
+              // en su estado natural — visible — durante el retraso, así que
+              // el que esperaba 470 ms se veía medio segundo, desaparecía de
+              // golpe al arrancar su animación y volvía a aparecer. Medido en
+              // producción. `both` también aplica el primer fotograma antes
+              // de empezar, así que espera escondido, que es el punto de
+              // escalonar las entradas.
+              animation: `entrada-difusa ${duracion}ms cubic-bezier(0.22, 1, 0.36, 1) ${retraso}ms both`,
             }
           : undefined
       }
