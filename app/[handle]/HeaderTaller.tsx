@@ -1,5 +1,19 @@
 import { Menu } from './iconos'
 
+/**
+ * El header de la página del taller: un módulo flotante angosto (ancho de
+ * contenido, no de pantalla completa) despegado del borde superior.
+ *
+ * Tres elementos: el logo del taller a la izquierda, el respaldo de marca y,
+ * después de ese logo, el botón que abre el menú lateral (`SidebarTaller`) —
+ * ahí vive la navegación por secciones, el botón de agendar y las redes.
+ *
+ * **El alto es fijo, y eso es a propósito**: es `--alto-cabecera`
+ * (`globals.css`), el mismo valor que `HeroTaller` se sube con un margen
+ * negativo para que la foto llegue al borde de arriba de la pantalla y esta
+ * barra le quede encima. Con un alto que dependa del contenido, el hero no
+ * tendría cómo saber cuánto subir.
+ */
 export default function HeaderTaller({
   nombre,
   logoUrl,
@@ -8,18 +22,22 @@ export default function HeaderTaller({
 }: {
   nombre: string
   logoUrl: string | null
+  /** Lo elige el taller según cómo se vea su logo. Ver `logoBackground`. */
   fondo: 'CLARO' | 'OSCURO'
   onAbrirMenu: () => void
 }) {
   const oscura = fondo === 'OSCURO'
 
   return (
-    <div className="sticky top-2 z-30 mx-auto max-w-[1280px] px-4 md:px-6">
+    <div className="sticky top-0 z-30 mx-auto h-[var(--alto-cabecera)] max-w-[1280px] px-4 pt-3 md:px-6 md:pt-4">
+      {/* Opaco a propósito: con transparencia + blur, el texto que pasa por
+          detrás durante el scroll quedaba parcialmente legible a través del
+          header — se veía roto, no elegante. */}
       <header
-        className={`flex items-center justify-between gap-4 rounded-[18px] border px-4 py-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.12)] backdrop-blur md:py-4 ${
+        className={`flex h-full items-center justify-between gap-4 rounded-[18px] border px-4 shadow-[0_12px_30px_rgba(15,23,42,0.12)] ${
           oscura
-            ? 'border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)]/95 text-[color:var(--color-cabecera-oscura-texto)]'
-            : 'border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]/90'
+            ? 'border-[color:var(--color-cabecera-oscura-linea)] bg-[color:var(--color-cabecera-oscura)] text-[color:var(--color-cabecera-oscura-texto)]'
+            : 'border-[color:var(--color-linea)] bg-[color:var(--color-fondo)]'
         }`}
       >
         <a href="#" className="flex min-w-0 items-center gap-3">

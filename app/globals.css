@@ -118,6 +118,34 @@ body {
  * la raíz de `LandingTaller.tsx`, para que nada fuera de esa página cambie. */
 .tipografia-taller {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Lo que mide la cabecera flotante del taller, contando el aire que tiene
+   * arriba. Vive acá y no adentro de un componente porque son dos los que
+   * tienen que estar de acuerdo: `HeaderTaller` la usa como alto fijo, y
+   * `HeroTaller` se sube exactamente eso con un margen negativo para que la
+   * foto llegue al borde de arriba de la pantalla y la cabecera le quede
+   * encima. Si cambia el alto de la cabecera, cambia acá y el hero acompaña
+   * solo. */
+  --alto-cabecera: 76px;
+}
+
+@media (min-width: 768px) {
+  .tipografia-taller {
+    --alto-cabecera: 88px;
+  }
+}
+
+/* Los títulos de la página del taller van en Clash Display; el texto corrido
+ * sigue en Montserrat. Es una fuente de display: luce en un título grande y se
+ * vuelve incómoda en un párrafo, así que no baja de los encabezados.
+ *
+ * Va por selector de elemento —para que un título nuevo entre solo, sin tener
+ * que acordarse de ponerle una clase— pero **acotado a `.tipografia-taller`**,
+ * que es la raíz de la landing y de nada más. Los selectores de elemento
+ * sueltos ya rompieron esta página una vez (ver `.sitio-legacy`, acá abajo);
+ * la lección fue que pueden existir, pero nunca sin dueño. */
+.tipografia-taller :is(h1, h2, h3) {
+  font-family: var(--font-marca);
 }
 
 /* El degradado es del sitio viejo, no del documento: la pagina del taller pinta
@@ -169,6 +197,49 @@ body {
 .sitio-legacy a:hover {
   color: #00e5ff;
   text-decoration: underline;
+}
+
+/* ── El haz que recorre el borde de una tarjeta ────────────────────
+ *
+ * Es el *border beam* de MagicUI rehecho en CSS. El original anima
+ * `offset-distance` con framer-motion; acá no hay framer-motion ni ninguna
+ * otra dependencia — este repo las evita a propósito — así que la anima el
+ * navegador con un `@keyframes`, que además no cuesta JavaScript.
+ *
+ * Cómo funciona: `.borde-haz` se superpone a la tarjeta con un borde
+ * transparente y dos máscaras —una recortada al padding-box y otra al
+ * border-box, restadas entre sí— que dejan ver **solo el anillo del borde**.
+ * Adentro, un cuadrado con un degradé recorre el perímetro con `offset-path`;
+ * como todo lo demás está enmascarado, de ese cuadrado solo se ve el pedazo
+ * que en ese momento pisa el borde. Eso es el haz.
+ *
+ * Los parámetros entran por variables desde `BorderBeam.tsx`. */
+.borde-haz {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: calc(var(--haz-ancho, 1) * 1px) solid transparent;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+/* Arranca sin dibujarse y se enciende más abajo, solo si el navegador sabe
+ * recorrer un `offset-path` y si no se pidió evitar el movimiento. Sin una de
+ * las dos cosas el cuadrado se quedaría quieto en una esquina, encendido:
+ * un borrón de color en el ángulo de la tarjeta, peor que no tener nada. */
+.borde-haz > span {
+  display: none;
+  position: absolute;
+  aspect-ratio: 1;
+  width: calc(var(--haz-tamano) * 1px);
+  background: linear-gradient(to left, transparent, var(--haz-color), transparent);
+  /* El desenfoque va acá adentro y no sobre `.borde-haz`: así se difumina el
+   * haz antes de que la máscara lo recorte, y el recorte sigue siendo prolijo
+   * contra el borde de la tarjeta. Al revés se desenfocaría la máscara. */
+  filter: blur(var(--haz-desenfoque, 0px));
 }
 
 /* Entrada letra por letra del "POLARIZAR" del home — ver `(sitio)/page.tsx`.
@@ -226,6 +297,38 @@ body {
     }
     to {
       transform: translateX(0);
+    }
+  }
+
+  /* El giro de las casillas de "Aplicamos láminas en:". Entra nada más el
+   * tipo nuevo: al montarse tapa al anterior, así que no hace falta animar
+   * también la salida. */
+  @keyframes giro-tipo {
+    from {
+      opacity: 0;
+      transform: rotateX(-75deg) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: rotateX(0) translateY(0);
+    }
+  }
+
+  @keyframes haz-borde {
+    from {
+      offset-distance: 0%;
+    }
+    to {
+      offset-distance: 100%;
+    }
+  }
+
+  @supports (offset-path: rect(0 auto auto 0)) {
+    .borde-haz > span {
+      display: block;
+      offset-path: rect(0 auto auto 0 round calc(var(--haz-tamano) * 1px));
+      animation: haz-borde var(--haz-duracion) linear infinite;
+      animation-delay: var(--haz-retraso);
     }
   }
 

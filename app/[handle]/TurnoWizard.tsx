@@ -58,6 +58,7 @@ export default function TurnoWizard({
   onCerrar,
   handle,
   taller,
+  logoUrl,
   apiBase,
   serviceIdInicial,
   wa,
@@ -66,6 +67,7 @@ export default function TurnoWizard({
   onCerrar: () => void
   handle: string
   taller: PublicWorkshop
+  logoUrl: string | null
   /** `/api/turno` o `/api/turno/demo`. */
   apiBase: string
   /** Si se abrió desde una tarjeta de servicio puntual, ese servicio ya viene elegido. */
@@ -294,7 +296,7 @@ export default function TurnoWizard({
           {enviado ? (
             <Gracias
               nombre={taller.name}
-              logoUrl={null}
+              logoUrl={logoUrl}
               wa={wa}
               visita={esArquitectura}
             />
@@ -584,8 +586,8 @@ export default function TurnoWizard({
                   </p>
                 )}
 
-                {/* Nav: "Siguiente" es un botón normal en los pasos 1-3; el
-                    submit real solo vive en el paso 4. */}
+                {/* Nav: "Siguiente" es un botón normal en el paso 1; el
+                    submit real solo vive en el paso 2. */}
                 <div className="mt-1 flex items-center justify-between gap-3">
                   {paso > 1 ? (
                     <button

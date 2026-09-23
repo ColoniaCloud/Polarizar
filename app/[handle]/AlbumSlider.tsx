@@ -28,9 +28,13 @@ export default function AlbumSlider({ fotos }: { fotos: string[] }) {
     <>
       <div className="space-y-4">
         {filas.map((fila, filaIndex) => (
-          <div key={fila.direction} className="relative overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] py-2">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[color:var(--color-superficie)] to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[color:var(--color-superficie)] to-transparent" />
+          <div key={fila.direction} className="relative overflow-hidden py-2">
+            {/* Los velos de los costados tapan la foto justo donde entra y sale
+                de la fila. Van con el fondo de la página y no con el de una
+                tarjeta: acá no hay tarjeta: la fila no tiene ni borde ni fondo
+                propio, así que lo que hay detrás de la foto es la página. */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[color:var(--color-fondo)] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[color:var(--color-fondo)] to-transparent" />
 
             <div
               className="flex w-max gap-3 px-2"

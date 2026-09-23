@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import HeaderTaller from './HeaderTaller'
 import HeroTaller from './HeroTaller'
 import SidebarTaller from './SidebarTaller'
 import TurnoWizard from './TurnoWizard'
 import Modalidades from './Modalidades'
-import TiposCarousel from './TiposCarousel'
+import Tipos from './Tipos'
 import AlbumSlider from './AlbumSlider'
+import BorderBeam from './BorderBeam'
 import Footer from './Footer'
 import WhatsAppFlotante from './WhatsAppFlotante'
 import { Mapa, Whatsapp, Mail, Instagram, Facebook, Tiktok, Google } from './iconos'
@@ -90,9 +91,7 @@ export default function LandingTaller({
     taller.hours.opening && taller.hours.closing
       ? `${taller.hours.opening} a ${taller.hours.closing}`
       : null
-  const direccionYHorario = [taller.address, [dias, horario].filter(Boolean).join(', ')]
-    .filter(Boolean)
-    .join(' · ')
+  const diasYHorario = [dias, horario].filter(Boolean).join(', ') || null
 
   // Mismo texto que mostraba siempre el hero viejo. No se reinventa el
   // contenido, solo se muda de lugar.
@@ -125,23 +124,40 @@ export default function LandingTaller({
     .filter((url): url is string => Boolean(url))
     .slice(0, 6)
 
-  const diaActual = new Date().getDay()
-  const horarioActual = (() => {
-    const now = new Date()
-    const opening = taller.hours.opening
-    const closing = taller.hours.closing
-    if (!opening || !closing) return null
+  // El cartel de "Abierto ahora" del hero.
+  //
+  // Se calcula recién en el navegador y no al renderizar: el server puede
+  // estar en otro huso horario que quien mira la página, y un cartel que dice
+  // una cosa en el HTML y otra al hidratar es un error de React, no un
+  // detalle. `null` = todavía no se sabe (o el taller no cargó horario), y en
+  // ese caso el hero no dibuja el cartel.
+  const [abiertoAhora, setAbiertoAhora] = useState<boolean | null>(null)
 
-    const [horaA, minA] = opening.split(':').map(Number)
-    const [horaB, minB] = closing.split(':').map(Number)
-    const abrirMins = horaA * 60 + minA
-    const cerrarMins = horaB * 60 + minB
-    const ahoraMins = now.getHours() * 60 + now.getMinutes()
-    const abierto = ahoraMins >= abrirMins && ahoraMins <= cerrarMins
+  useEffect(() => {
+    const { opening, closing, days } = taller.hours
+    if (!opening || !closing) return
 
-    if (abierto) return 'Abierto ahora'
-    return `Cerrado · Abre a las ${opening}`
-  })()
+    const enMinutos = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number)
+      return h * 60 + m
+    }
+
+    const ahora = new Date()
+    // `days` viene como "1,2,3,4,5" con 1 = lunes; `getDay()` usa 0 = domingo.
+    // Sin esto, un taller cerrado el domingo decía "Abierto ahora" el domingo.
+    const hoy = ahora.getDay() === 0 ? 7 : ahora.getDay()
+    const abreHoy = days
+      ? days
+          .split(',')
+          .map((d) => Number(d.trim()))
+          .includes(hoy)
+      : true
+    const ahoraEnMinutos = ahora.getHours() * 60 + ahora.getMinutes()
+
+    setAbiertoAhora(
+      abreHoy && ahoraEnMinutos >= enMinutos(opening) && ahoraEnMinutos <= enMinutos(closing)
+    )
+  }, [taller.hours])
 
   return (
     <div
@@ -172,15 +188,15 @@ export default function LandingTaller({
             <HeroTaller
               slides={slides.map((url) => ({ image: url, alt: taller.name }))}
               nombre={taller.name}
-              direccion={taller.address ?? 'Dirección no disponible'}
-              horarioTexto={horarioActual ?? 'Horario no disponible'}
-              abierto={!!horarioActual?.startsWith('Abierto')}
+              direccion={taller.address}
+              horarioTexto={diasYHorario}
+              abierto={abiertoAhora}
               onAgendar={() => abrirWizard()}
-              onWhatsApp={() => wa && window.open(wa, '_blank', 'noopener,noreferrer')}
+              onWhatsApp={wa ? () => window.open(wa, '_blank', 'noopener,noreferrer') : undefined}
             />
           )}
 
-          <section id="nosotros" className="mx-auto max-w-[1280px] px-4 py-9 md:px-6 md:py-14">
+          <section id="nosotros" className="mx-auto max-w-[1280px] scroll-mt-28 px-4 py-9 md:px-6 md:py-14">
             <div className="grid gap-6 md:grid-cols-[1.1fr_1fr] md:gap-8">
               <div className="flex flex-col gap-5">
                 <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--color-tinta)]">
@@ -244,14 +260,21 @@ export default function LandingTaller({
                   )}
                 </div>
 
-                <div className="pt-2">
+                {/* Lleva el ancla `#donde-trabajamos` — la del menú lateral y
+                    la del footer — porque es el único lugar donde vive: antes
+                    estaba dibujado dos veces, acá y otra vez a ancho completo
+                    más abajo, diciendo exactamente lo mismo. */}
+                <div id="donde-trabajamos" className="scroll-mt-28 pt-2">
                   <Modalidades taller={taller} wa={wa} email={emailContacto} />
                 </div>
               </div>
 
               <div
                 id="servicios"
-                className="relative overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] md:p-5"
+                // Sin borde propio: el anillo de adentro (`inset-[1px]`) ya
+                // dibuja la línea de la tarjeta, y con los dos juntos el haz
+                // corría por el medio de una línea doble — se veía un tubo.
+                className="relative scroll-mt-28 overflow-hidden rounded-[22px] bg-[color:var(--color-superficie)] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] md:p-5"
               >
                 <div className="absolute inset-[1px] rounded-[21px] border border-[color:var(--color-linea)]/80" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.34),transparent_34%),linear-gradient(120deg,transparent_0%,rgba(163,175,196,0.25)_50%,transparent_100%)] opacity-80" />
@@ -299,22 +322,38 @@ export default function LandingTaller({
                     </div>
                   )}
                 </div>
+
+                {/* Dos haces cruzados por el borde de la tarjeta: uno con el
+                    color de acento que eligió el taller y otro gris, que
+                    arranca medio giro después (`retraso` = la mitad de
+                    `duracion`) para que se persigan y no viajen pegados. */}
+                <BorderBeam
+                  color="var(--color-acento)"
+                  tamano={400}
+                  duracion={6}
+                  ancho={2}
+                  desenfoque={6}
+                />
+                <BorderBeam
+                  color="var(--color-tenue)"
+                  tamano={400}
+                  duracion={6}
+                  retraso={3}
+                  ancho={2}
+                  desenfoque={6}
+                />
               </div>
             </div>
           </section>
 
-          <section id="donde-trabajamos" className="mx-auto max-w-[1280px] px-4 py-6 md:px-6 md:py-12">
-            <Modalidades taller={taller} wa={wa} email={emailContacto} />
-          </section>
-
           {photoUrls.length > 0 && (
-            <section id="trabajos" className="mx-auto max-w-[1280px] px-4 py-8 md:px-6 md:py-10">
+            <section id="trabajos" className="mx-auto max-w-[1280px] scroll-mt-28 px-4 py-8 md:px-6 md:py-10">
               <h2 className="mb-4 text-xl font-semibold text-[color:var(--color-tinta)]">Trabajos realizados</h2>
               <AlbumSlider fotos={photoUrls} />
             </section>
           )}
 
-          <TiposCarousel taller={taller} />
+          <Tipos taller={taller} />
 
           <section className="relative overflow-hidden bg-[color:var(--color-realce)] py-12 md:py-16">
             <div
@@ -322,7 +361,7 @@ export default function LandingTaller({
               style={{
                 backgroundImage: "url('/lineas.png')",
                 backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right center',
+                backgroundPosition: 'right top',
                 backgroundSize: 'cover',
               }}
             />
@@ -331,11 +370,16 @@ export default function LandingTaller({
                 <img
                   src="/logo-kristall.png"
                   alt="Kristall Film"
-                  className="h-12 w-auto rounded-md object-contain shadow-md md:h-16"
+                  className="h-9 w-auto rounded-md object-contain shadow-md md:h-12"
                 />
 
-                <h2 className="max-w-3xl text-2xl font-semibold tracking-[-0.04em] text-[color:var(--color-tinta)] md:text-4xl">
-                  <span className="font-semibold">{taller.name}</span> trabaja con el respaldo y la garantía de <span className="font-semibold text-[color:var(--color-acento)]">Kristall Film</span>.
+                {/* Las negritas cargan los dos nombres propios y el resto va en
+                    peso regular. Todo en tinta, también "Kristall Film": acá el
+                    acento es el color que eligió el taller, y pintar con él la
+                    marca de otro es prestarle un color que no le corresponde. */}
+                <h2 className="max-w-3xl text-2xl font-normal tracking-[-0.04em] text-[color:var(--color-tinta)] md:text-4xl">
+                  <strong className="font-bold">{taller.name}</strong> trabaja con el respaldo y la
+                  garantía de los productos <strong className="font-bold">Kristall Film</strong>.
                 </h2>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -361,7 +405,7 @@ export default function LandingTaller({
             </div>
           </section>
 
-          <section id="ubicacion" className="mx-auto max-w-[1280px] px-4 pb-12 pt-8 md:px-6 md:pb-20 md:pt-12">
+          <section id="ubicacion" className="mx-auto max-w-[1280px] scroll-mt-28 px-4 pb-12 pt-8 md:px-6 md:pb-20 md:pt-12">
             <div className="grid gap-6 md:grid-cols-2 md:gap-8">
               <div className="overflow-hidden rounded-[22px] border border-[color:var(--color-linea)] bg-[color:var(--color-superficie)]">
                 {mapaUrl ? (
@@ -458,6 +502,7 @@ export default function LandingTaller({
         onCerrar={() => setWizardAbierto(false)}
         handle={handle}
         taller={taller}
+        logoUrl={logoUrl}
         apiBase={apiBase}
         serviceIdInicial={servicioParaWizard}
         wa={wa}
