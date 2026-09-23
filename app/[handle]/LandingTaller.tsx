@@ -472,10 +472,18 @@ export default function LandingTaller({
                     acento es el color que eligió el taller, y pintar con él la
                     marca de otro es prestarle un color que no le corresponde. */}
                 <EntradaDifusa retraso={140} duracion={800}>
+                  {/* Las negritas aflojan el interletrado del título (de -0.04em
+                      a -0.01em). No es un capricho: a peso 700 los trazos son
+                      más gruesos y cierran los contraformas, así que el mismo
+                      tracking que le sienta bien al texto regular deja los dos
+                      nombres propios apelmazados — y son justo las dos cosas
+                      que la banda existe para que se lean. Compensar la
+                      negrita con dos o tres centésimas de em es lo estándar
+                      cuando conviven dos pesos en el mismo renglón. */}
                   <h2 className="max-w-3xl text-2xl font-normal tracking-[-0.04em] text-[#eef1f4] md:text-4xl">
-                    <strong className="font-bold text-white">{taller.name}</strong> trabaja con el
-                    respaldo y la garantía de los productos{' '}
-                    <strong className="font-bold text-white">Kristall Film</strong>.
+                    <strong className="font-bold tracking-[-0.01em] text-white">{taller.name}</strong>{' '}
+                    trabaja con el respaldo y la garantía de los productos{' '}
+                    <strong className="font-bold tracking-[-0.01em] text-white">Kristall Film</strong>.
                   </h2>
                 </EntradaDifusa>
 
