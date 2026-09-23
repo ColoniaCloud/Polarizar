@@ -106,6 +106,15 @@ export interface PublicWorkshop {
   heroPath: string | null
   /** Bajada corta que escribió el instalador. `null` = no completó nada. */
   description: string | null
+  /**
+   * La cara de quien atiende, para "Nosotros". Ruta relativa al CRM, igual
+   * que `logoPath`. `null` = no subió ninguna, y ahí la sección va solo con
+   * texto — nunca con un avatar genérico, que anuncia que no hay nadie.
+   */
+  teamPath?: string | null
+  /** Quién es y qué hace. Una cara con nombre convence; una cara sola, no. */
+  teamName?: string | null
+  teamRole?: string | null
   /** Preset de color de fondo elegido — ver `lib/tema.ts`. */
   pageTheme: 'BLANCO' | 'GRIS_CLARO' | 'GRIS_OSCURO' | 'NEGRO'
   /** Preset de color de acento elegido — ver `lib/tema.ts`. */

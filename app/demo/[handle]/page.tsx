@@ -69,6 +69,7 @@ export default async function TallerDemoPage({ params }: Props) {
       taller={taller}
       logoUrl={crmAssetUrl(taller.logoPath, true)}
       heroUrl={crmAssetUrl(taller.heroPath, true)}
+      teamUrl={crmAssetUrl(taller.teamPath ?? null, true)}
       fotos={fotosDelAlbum(taller.photos, true)}
       mapaUrl={urlDelMapa(taller)}
       mapaLinkDestino={destinoMapa(taller)}

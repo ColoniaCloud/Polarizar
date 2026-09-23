@@ -53,6 +53,7 @@ export default function LandingTaller({
   taller,
   logoUrl,
   heroUrl,
+  teamUrl,
   fotos,
   mapaUrl,
   mapaLinkDestino,
@@ -65,6 +66,8 @@ export default function LandingTaller({
   logoUrl: string | null
   /** `null` = todavía no subió foto de portada: se usa el layout de siempre. */
   heroUrl: string | null
+  /** La cara de quien atiende. `null` = no subió ninguna. */
+  teamUrl: string | null
   /** El álbum ya normalizado (URL + descripción), en el orden del taller. */
   fotos: FotoDelAlbum[]
   mapaUrl: string | null
@@ -220,6 +223,42 @@ export default function LandingTaller({
                 <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--color-tinta)]">
                   Nosotros:
                 </h2>
+
+                {/* La foto va antes del texto y no después: quien entra llega
+                    de un mensaje de WhatsApp y está por dejarle el auto unas
+                    horas a alguien que no conoce. La cara contesta esa
+                    pregunta más rápido que cualquier párrafo.
+
+                    Si no hay foto no se dibuja nada — ningún avatar genérico
+                    con una silueta, que es peor que no tener: anuncia que no
+                    hay nadie. Y si hay foto pero no nombre, tampoco se
+                    inventa: queda la foto sola. */}
+                {teamUrl && (
+                  <figure className="flex items-center gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={teamUrl}
+                      alt={
+                        taller.teamName
+                          ? `${taller.teamName}${taller.teamRole ? `, ${taller.teamRole}` : ''}`
+                          : ''
+                      }
+                      className="size-20 shrink-0 rounded-full object-cover md:size-24"
+                    />
+                    {taller.teamName && (
+                      <figcaption className="min-w-0">
+                        <span className="block font-semibold text-[color:var(--color-tinta)]">
+                          {taller.teamName}
+                        </span>
+                        {taller.teamRole && (
+                          <span className="block text-sm text-[color:var(--color-tenue)]">
+                            {taller.teamRole}
+                          </span>
+                        )}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
 
                 <p className="max-w-xl text-base leading-7 text-[color:var(--color-tenue)]">
                   {subtitulo || 'Especialistas en laminado automotriz y arquitectónico con atención personalizada y garantía registrada.'}
