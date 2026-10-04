@@ -66,7 +66,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const soloArquitectura = taller.rubros.arquitectura && !taller.rubros.automotriz
   const accion = soloArquitectura ? 'Pedí tu presupuesto' : 'Pedí tu turno'
   const title = `${taller.name} — ${accion}`
-  const description = [taller.name + '.', queHace(taller.rubros), taller.address, 'Instalador autorizado Kristall.']
+  // Cada pieza cierra con punto: es el texto que Google muestra debajo del
+  // título, y "Av Chacabuco 2335 Instalador autorizado" se lee como una sola frase.
+  const conPunto = (t: string | null) => (t ? (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`) : null)
+  const description = [conPunto(taller.name), queHace(taller.rubros), conPunto(taller.address), 'Instalador autorizado Kristall.']
     .filter(Boolean)
     .join(' ')
   const url = `${SITIO}/${handle.toLowerCase()}`
