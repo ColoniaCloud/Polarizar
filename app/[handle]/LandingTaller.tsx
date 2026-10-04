@@ -527,11 +527,14 @@ export default function LandingTaller({
                     Agendar turno
                   </button>
 
+                  {/* Botón blanco = texto oscuro fijo, no `--color-tinta`: en los temas
+                      oscuros la tinta es casi blanca y quedaba blanco sobre blanco.
+                      #1e242c es la tinta del tema BLANCO, así que en los claros no cambia. */}
                   {wa && (
                     <button
                       type="button"
                       onClick={() => window.open(wa, '_blank', 'noopener,noreferrer')}
-                      className="rounded-full border border-[color:var(--color-linea)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-tinta)] shadow-sm transition-transform hover:scale-[1.02] md:px-7 md:text-base"
+                      className="rounded-full border border-[color:var(--color-linea)] bg-white px-5 py-3 text-sm font-semibold text-[#1e242c] shadow-sm transition-transform hover:scale-[1.02] md:px-7 md:text-base"
                     >
                       Whatsapp
                     </button>
@@ -597,7 +600,7 @@ export default function LandingTaller({
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapaLinkDestino)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex w-[45%] min-w-[180px] items-center justify-center gap-2 rounded-full border border-[color:var(--color-linea)] bg-white px-4 py-3 text-sm font-semibold text-[color:var(--color-tinta)]"
+                      className="inline-flex w-[45%] min-w-[180px] items-center justify-center gap-2 rounded-full border border-[color:var(--color-linea)] bg-white px-4 py-3 text-sm font-semibold text-[#1e242c]"
                     >
                       Abrir perfil de Google Maps
                     </a>
