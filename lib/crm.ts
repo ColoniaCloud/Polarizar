@@ -204,6 +204,30 @@ export async function getWorkshopByHandle(
   }
 }
 
+export interface TallerPublicado {
+  handle: string
+  /** ISO. Va como `lastModified` del sitemap. */
+  updatedAt: string
+}
+
+/**
+ * Los talleres con página publicada, para el sitemap.
+ *
+ * **Nunca tira:** si el CRM no está configurado, no responde o todavía no tiene
+ * el endpoint, devuelve una lista vacía. Un sitemap sin talleres es mejor que
+ * un sitemap que da 500 — Google deja de pedir uno que falla.
+ */
+export async function listTalleresPublicados(): Promise<TallerPublicado[]> {
+  if (!crmConfigurado()) return []
+  try {
+    const r = await callCrm<{ talleres: TallerPublicado[] }>('/api/public/workshop/handles')
+    return r.talleres
+  } catch (err) {
+    console.error('[polarizar] No se pudo listar los talleres para el sitemap:', err)
+    return []
+  }
+}
+
 /**
  * Las imágenes que sirve el CRM no están en este sitio.
  *

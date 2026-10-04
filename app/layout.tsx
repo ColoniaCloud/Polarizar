@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  // Base para que Next arme URLs absolutas (canonical, Open Graph) con el
+  // dominio real y no con el del servidor que hizo el build.
+  metadataBase: new URL('https://polariz.ar'),
   title: 'Polarizar',
-  description: 'Proyecto Next.js para Polarizar',
+  description: 'Talleres de polarizado e instaladores autorizados Kristall: pedí tu turno online.',
 };
 
 /**

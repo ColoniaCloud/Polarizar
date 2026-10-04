@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getWorkshopByHandle, crmAssetUrl, fotosDelAlbum } from '@/lib/crm'
+import { SITIO, datosEstructurados, jsonLd, queHace } from '@/lib/seo'
 import LandingTaller from './LandingTaller'
 
 /**
@@ -64,22 +65,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // en arquitectura no se reserva un turno, se pide una visita para medir.
   const soloArquitectura = taller.rubros.arquitectura && !taller.rubros.automotriz
   const accion = soloArquitectura ? 'Pedí tu presupuesto' : 'Pedí tu turno'
-  const queHace = taller.rubros.automotriz
-    ? taller.rubros.arquitectura
-      ? 'Polarizado de vehículos y láminas para vidrios de casas y oficinas.'
-      : 'Polarizado de vehículos.'
-    : 'Láminas para vidrios de casas, oficinas y edificios.'
+  const title = `${taller.name} — ${accion}`
+  const description = [taller.name + '.', queHace(taller.rubros), taller.address, 'Instalador autorizado Kristall.']
+    .filter(Boolean)
+    .join(' ')
+  const url = `${SITIO}/${handle.toLowerCase()}`
+  // La foto del hero es la que mejor vende el taller en la vista previa del
+  // link (Instagram, WhatsApp); si no subió, el logo.
+  const imagen = crmAssetUrl(taller.heroPath) ?? crmAssetUrl(taller.logoPath)
 
   return {
-    title: `${taller.name} — ${accion}`,
-    description: [
-      taller.name + '.',
-      queHace,
-      taller.address,
-      'Instalador autorizado Kristall.',
-    ]
-      .filter(Boolean)
-      .join(' '),
+    title,
+    description,
+    // Una sola URL por taller: /TallerCarlos y /tallercarlos son la misma
+    // página, y sin esto Google las cuenta como dos y reparte entre ellas.
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'website',
+      locale: 'es_AR',
+      siteName: 'Polarizar',
+      url,
+      title,
+      description,
+      ...(imagen ? { images: [{ url: imagen, alt: taller.name }] } : {}),
+    },
+    twitter: { card: imagen ? 'summary_large_image' : 'summary', title, description },
   }
 }
 
@@ -89,17 +99,28 @@ export default async function TallerPage({ params }: Props) {
   // Un taller que no publicó su página es indistinguible de uno que no existe.
   if (!taller) notFound()
 
+  const logoUrl = crmAssetUrl(taller.logoPath)
+  const heroUrl = crmAssetUrl(taller.heroPath)
+
   return (
-    <LandingTaller
-      handle={handle.toLowerCase()}
-      taller={taller}
-      logoUrl={crmAssetUrl(taller.logoPath)}
-      heroUrl={crmAssetUrl(taller.heroPath)}
-      teamUrl={crmAssetUrl(taller.teamPath ?? null)}
-      fotos={fotosDelAlbum(taller.photos)}
-      mapaUrl={urlDelMapa(taller)}
-      mapaLinkDestino={destinoMapa(taller)}
-      emailContacto={taller.email}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd(datosEstructurados(handle.toLowerCase(), taller, { hero: heroUrl, logo: logoUrl })),
+        }}
+      />
+      <LandingTaller
+        handle={handle.toLowerCase()}
+        taller={taller}
+        logoUrl={logoUrl}
+        heroUrl={heroUrl}
+        teamUrl={crmAssetUrl(taller.teamPath ?? null)}
+        fotos={fotosDelAlbum(taller.photos)}
+        mapaUrl={urlDelMapa(taller)}
+        mapaLinkDestino={destinoMapa(taller)}
+        emailContacto={taller.email}
+      />
+    </>
   )
 }
