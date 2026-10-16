@@ -224,10 +224,13 @@ export default function LandingTaller({
                   Nosotros:
                 </h2>
 
-                {/* La foto va antes del texto y no después: quien entra llega
-                    de un mensaje de WhatsApp y está por dejarle el auto unas
-                    horas a alguien que no conoce. La cara contesta esa
-                    pregunta más rápido que cualquier párrafo.
+                <p className="max-w-xl text-base leading-7 text-[color:var(--color-tenue)]">
+                  {subtitulo || 'Especialistas en laminado automotriz y arquitectónico con atención personalizada y garantía registrada.'}
+                </p>
+
+                {/* La foto va después de la descripción y antes del contacto
+                    y las redes: primero qué hace el taller, después quién lo
+                    atiende, y recién ahí cómo contactarlo.
 
                     Si no hay foto no se dibuja nada — ningún avatar genérico
                     con una silueta, que es peor que no tener: anuncia que no
@@ -259,10 +262,6 @@ export default function LandingTaller({
                     )}
                   </figure>
                 )}
-
-                <p className="max-w-xl text-base leading-7 text-[color:var(--color-tenue)]">
-                  {subtitulo || 'Especialistas en laminado automotriz y arquitectónico con atención personalizada y garantía registrada.'}
-                </p>
 
                 {/* `gap-0` + `py-3`: cada link mide 44px de alto para el dedo
                     sin que la lista quede más aireada que antes. El teléfono y
