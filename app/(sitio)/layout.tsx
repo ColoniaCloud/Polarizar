@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Navigation from '../components/Navigation';
+import Header from '../components/Header';
 
 /**
  * Fuera de Google por ahora: las secciones del sitio de comunidad son
@@ -18,7 +18,7 @@ export default function SitioLayout({ children }: { children: React.ReactNode })
     // `sitio-legacy` acota los estilos viejos de globals.css a estas paginas.
     // Sin eso se filtraban a la pagina publica del taller y la rompian.
     <div className="sitio-legacy">
-      <Navigation />
+      <Header />
       {children}
     </div>
   );

@@ -4,14 +4,13 @@ const PALABRA = 'POLARIZAR';
  * Home como pantalla completa: fondo negro, "POLARIZAR" centrado en Clash
  * Display, entrando letra por letra.
  *
- * `fixed inset-0` en vez de `h-svh` en flujo normal: el `<Navigation />` de
- * `(sitio)/layout.tsx` es alto (en mobile se apila entero, sin colapsar a
- * hamburguesa) y si el hero fuera un bloque más después del nav, quedaba su
- * propio alto de una pantalla pero arrancando debajo del nav — o sea, para
+ * `fixed inset-0` en vez de `h-svh` en flujo normal: si el hero fuera un
+ * bloque más después del `<Header />` de `(sitio)/layout.tsx`, quedaba su
+ * propio alto de una pantalla pero arrancando debajo del header — o sea, para
  * verlo completo había que scrollear. Fijo y tapando todo el viewport, es
- * "una pantalla" de verdad en cualquier alto de nav. `z-[1001]` porque el
- * nav es `position: sticky` con `z-index: 1000` (Navigation.module.css) —
- * con un z-index menor, el nav le ganaba la mitad de arriba del hero. El
+ * "una pantalla" de verdad. `z-[1001]` porque el header es `sticky` con
+ * `z-[1000]` (components/Header.tsx), y acá se lo tapa a propósito: la home
+ * ya tiene su propio botón de acceso. El
  * `style` inline pisa el `padding`/`max-width` que `.sitio-legacy main` le
  * pone a todas las páginas de este layout (ver globals.css) — solo para
  * esta página.
