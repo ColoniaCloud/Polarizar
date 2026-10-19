@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <main
       style={{ margin: 0, padding: 0, maxWidth: 'none' }}
-      className="fixed inset-0 z-[1001] flex items-center justify-center bg-black"
+      className="fixed inset-0 z-[1001] flex flex-col items-center justify-center bg-black px-4"
     >
       <h1
         aria-label={PALABRA}
@@ -56,6 +56,36 @@ export default function HomePage() {
           </span>
         ))}
       </h1>
+
+      {/* Entran después de la última letra (9 × 60 ms), con la misma animación. */}
+      <div
+        className="letra-entrada mt-10 flex flex-col items-center gap-3 sm:flex-row"
+        style={{ animationDelay: `${PALABRA.length * 60 + 150}ms` }}
+      >
+        <a
+          href="/mi-cuenta"
+          className="w-56 rounded-md border border-white bg-white px-6 py-3 text-center text-sm font-semibold !text-black !no-underline transition-colors hover:bg-white/85"
+        >
+          Acceder al sistema
+        </a>
+        <a
+          href="https://kristallfilm.com/es/contacto"
+          className="w-56 rounded-md border border-white/40 px-6 py-3 text-center text-sm font-semibold !text-white !no-underline transition-colors hover:border-white hover:bg-white/10"
+        >
+          Quiero ser cliente
+        </a>
+      </div>
+
+      <a
+        href="https://kristallfilm.com"
+        aria-label="Powered by Kristall Film"
+        className="letra-entrada mt-8 flex items-center gap-2 text-xs !text-white/50 !no-underline transition-colors hover:!text-white/80"
+        style={{ animationDelay: `${PALABRA.length * 60 + 300}ms` }}
+      >
+        Powered by
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/cat/logob.svg" alt="" className="h-4 w-auto opacity-80" />
+      </a>
     </main>
   );
 }
